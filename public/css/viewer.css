@@ -1,0 +1,170 @@
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.9);
+    box-shadow: 0 0 25px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
+.graph-svg-component {
+    background-color: AliceBlue;
+}
+
+.legend {
+    line-height: 18px;
+    color: #555;
+}
+.legend i {
+    width: 18px;
+    height: 18px;
+    float: left;
+    margin-right: 8px;
+    opacity: 0.7;
+}
+#div_description p{
+	text-align: justify;
+	padding-top: 20px;
+}
+#map_ppal {
+	width: 780px;
+	height: 800px;
+	float: left;
+}
+#div_chart_ppal_header {
+	text-align: center;
+	float: left;
+	width: 360px;
+}
+#div_chart_ppal {
+	align: center;
+	padding: 10px;
+	float: left;
+	width: 380px;
+}
+#div_chart_1_header {
+	text-align: center;
+	float: left;
+	width: 380px;
+}
+#div_chart_1 {
+	align: center;
+	padding: 10px;
+	float: left;
+	width: 380px;
+	padding: 10px;
+}
+#div_metro_estacion{
+	border: 2px solid;
+	border-radius: 5px;
+	color: #000000;
+	background-color: #EEEEEE;
+}
+
+#div_map_info{
+	border: 2px solid;
+	border-radius: 5px;
+	color: #000000;
+	background-color: #FFEEEE;
+}
+
+#north_icon{
+	position: absolute;
+	top: 40px;
+	left: 1100px;
+}
+
+.div_arrow{
+	position: absolute;
+}
+#status_legend_ui{
+	position: absolute;
+	top: 40px;
+	left: 40px;
+	width: 250px;
+	padding: 10px;
+	background:  rgba(225, 225, 225, 0.8);
+	border-radius: 15px;
+}
+#status_text{
+	text-align: justify;
+	font-size: 14px;   
+}
+#status_header{
+	color: #000000;
+	border: 1px solid #AAAAAA;
+}
+#table_prop_urb{
+	border: 1px solid black;
+}
+.table_prop_urb td{
+	border: 1px solid black;
+	text-align: center;
+}
+.table_prop_urb{
+	margin-left: auto;
+	margin-right: auto;
+}
+.table_titles{
+	
+}
+.td_ciclo{
+	text-align: center;
+}
+.span_ciclo{
+	font-weight: bold;
+}
+.two_column_ul{
+	columns : 2;
+	-webkit-columns : 2;
+	-moz-columns : 2;
+}
+.div_foot p{
+	clear : both;
+	text-align: justify;
+	padding-top: 20px;
+}
+.p_fuente {
+	font-size : 12px;
+	padding-top: 20px;
+
+}
+
+#overlay {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    right: 0;
+    background: #000;
+    opacity: 0.8;
+    filter: alpha(opacity=80);
+}
+#loading {
+    width: 50px;
+    height: 57px;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -28px 0 0 -25px;
+}
+#viewer_legend{
+	position: absolute;
+	top: 930px;
+	left: 950px;
+	width: 200px;
+	padding: 10px;
+	background:  rgba(225, 225, 225, 0.8);
+	border-radius: 15px;
+}
+
+.simple_legend i{
+	width : 18px;
+	height: 18px;
+	float: left;
+	margin-right : 8px;
+	opacity: 0.7;
+}

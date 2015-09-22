@@ -1,0 +1,25 @@
+{
+  "name": "proyecto_tm",
+  "version": "0.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/juanibarral/tm_project.git"
+  },
+  "author": "juanibarral",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/juanibarral/tm_project/issues"
+  },
+  "homepage": "https://github.com/juanibarral/tm_project#readme",
+  "dependencies": {
+    "async": "^1.4.2",
+    "express": "^4.13.3",
+    "geotabuladb": "0.0.7",
+    "socket.io": "^1.3.7"
+  }
+}
