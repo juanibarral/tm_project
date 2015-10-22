@@ -15,6 +15,14 @@ tm_app.config(function($routeProvider){
 			templateUrl : 'views/od_matrices.html',
 			controller : 'controller_od_matrices'
 		})	
+		.when('/stations_io',{
+			templateUrl : 'views/stations_io.html',
+			controller : 'controller_stations_io'
+		})	
+		.when('/twitter',{
+			templateUrl : 'views/twitter.html',
+			controller : 'controller_twitter'
+		})	
 		.otherwise({
 			redirectTo : 'views/view_home.html'
 		});

@@ -3,6 +3,8 @@ var currentUser;
 var selectionStatus = [
 	'menu_about',
 	'menu_od_matrices',
+	'menu_stations_io',
+	'menu_twitter'
 ];
 
 

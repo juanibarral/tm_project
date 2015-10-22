@@ -6,6 +6,15 @@ var io = require('socket.io')(http);
 var async = require('async');
 //var jsonfile = require('jsonfile');
 
+var Twitter = require('twitter');
+
+var client = new Twitter({
+	consumer_key : 'WyQtno7Lm7bf4CL5R0CV2NBoz',
+	consumer_secret : 'ML3BuPPCprtvOlZW0vAXEyz5TyHvy7p8a3I7fnGwasMzEOSrBQ',
+	access_token_key: '388142247-zCgkREXLKp5Nn7OlIQXlAyEzojLHNZSS0VNPuTIo',
+  	access_token_secret: 'GcsEAmVKGgOnLx3BPs1Jig25PNeazhrsQrXlnzvmuPVa5'
+});
+
 
 //Local libraries
 var dataRetrieval = require('./dataRetrieval.js');
@@ -22,7 +31,36 @@ io.on('connection', function(socket) {
 		dataRetrieval.getShape(msg, function(shape){
 			console.log("******************");
 			console.log("sending_shape");
-			socket.emit('shape_' + msg.shape, shape);
+			
+			if(msg.shape == 'tm_stations')
+			{
+				dataRetrieval.getStationsMap(function(map){
+					//console.log(map);
+					//console.log(shape.json);
+					for(each in shape.json.features)
+					{
+						var feature = shape.json.features[each];
+						var id = parseInt(feature.properties.codigo_tm);
+						if(map[id])
+						{
+							for(newP in map[id])
+							{
+								//console.log(newP)
+								shape.json.features[each].properties[newP] = map[id][newP]
+							}
+							//console.log("Agrego")
+							//console.log(shape.json.features[each].properties)
+						}
+					}
+					
+					socket.emit('shape_' + msg.shape, {caller : msg.caller, data : shape});
+				})
+			}
+			else
+			{
+				socket.emit('shape_' + msg.shape, {caller : msg.caller, data : shape});	
+			}
+			
 		});
 	});
 	
@@ -37,17 +75,53 @@ io.on('connection', function(socket) {
 				console.log("******************");
 				console.log("sending_od_matrix");
 				console.log(msg);
-				socket.emit('od_matrix', newMatrix);
+				socket.emit('od_matrix', {caller : msg.caller, data : newMatrix});
 			});
-			/*
-			console.log("******************");
-			console.log("sending_od_matrix");
-			console.log(msg);
-			socket.emit('od_matrix_' + msg.od_matrix, matrix);
-			*/
 		});
 	});
 	
+	socket.on('get_data_salidas', function(msg){
+		console.log("******************");
+		console.log("get_data_salidas");
+		console.log(msg);
+		dataRetrieval.getSalidasData(msg, function(salidasData){
+			dataRetrieval.getStationsMap(function(map){
+				console.log("******************");
+				console.log("sending_data_salidas");
+				console.log(msg);
+				socket.emit('data_salidas', {caller : msg.caller, data : salidasData, stationsMap : map});	
+			});
+			
+			
+		});
+	});
+	
+	socket.on('get_twitter_data_rest', function(msg){
+		console.log("******************");
+		console.log("get_twitter_data_rest");
+		console.log(msg);
+		client.get('search/tweets', msg.restparams, function(error, tweets, response){
+			if(error)
+				console.log(error);
+			else
+				socket.emit("twitter_data", {caller : msg.caller, data : tweets});
+		});
+	});
+	
+	socket.on('get_twitter_data_stream', function(msg){
+		console.log("******************");
+		console.log("get_twitter_data_stream");
+		console.log(msg);
+		client.stream('statuses/filter', msg.streamparams, function(stream) {
+  			stream.on('data', function(tweet) {
+    			socket.emit('twitter_data_stream', {caller : msg.caller, data : tweet});
+  			});
+ 
+  			stream.on('error', function(error) {
+    			throw error;
+  			});
+		});
+	});
 }); 
 
 
@@ -63,6 +137,7 @@ function buildMatrix(group, matrix, map)
 		if(!newMatrix[newOrigin])
 		{
 			newMatrix[newOrigin] = {};
+			newMatrix[newOrigin]['raw'] = {};
 		}
 
 		for(dest in destinations)
@@ -73,11 +148,15 @@ function buildMatrix(group, matrix, map)
 				newMatrix[newOrigin][newDestination] = 0;
 			}
 			newMatrix[newOrigin][newDestination] += parseInt(destinations[dest]);
+			
+			
+			if(!newMatrix[newOrigin]['raw'][dest])
+			{
+				newMatrix[newOrigin]['raw'][dest] = 0;
+			}
+			newMatrix[newOrigin]['raw'][dest] += parseInt(destinations[dest]);
 		}
-
 	}
-
-
 
 	return newMatrix;
 }
@@ -93,7 +172,7 @@ app.get('/', function(req, res) {
 	
 });
 
-var server = http.listen(3006, function () {
+var server = http.listen(5938, function () {
   var host = server.address().address;
   var port = server.address().port;
 

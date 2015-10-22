@@ -7,8 +7,9 @@
 		<script src="js/lib/socket.io-1.3.5.js"></script>
 		<script src="js/lib/d3.js"></script>
 		<script src="js/lib/c3.js"></script>
+		<script src="js/lib/d3.layout.cloud.js"></script>
 		<link rel="stylesheet" href="css/c3.css" />
-		<link rel="stylesheet" href="css/uber.css" />
+		<link rel="stylesheet" href="css/tm.css" />
 		<!--<script src="http://maps.google.com/maps/api/js?v=3.2&sensor=false"></script>-->
 		<link rel="stylesheet" href="js/lib/leaflet-0.7.3/leaflet.css" />
 		<script src="js/lib/leaflet-0.7.3/leaflet.js"></script>
@@ -18,6 +19,7 @@
 		<script src="js/lib/jquery/jquery-1.11.3.min.js"></script>
 		<script src="js/lib/L.Map.Sync.js"></script>
 		<script src="js/lib/leaflet-heat.js"></script>
+		<script src="js/lib/geotabula_infovis/src/geotabula_infovis.src.js"></script>
 		
 		<!-- Bootstrap core CSS -->
 		<link href="js/lib/bootstrap-3.3.5-dist/css/bootstrap.min.css" rel="stylesheet">
@@ -29,6 +31,8 @@
 		<script src="js/controllers/service_socket.js"></script>
 		<script src="js/controllers/controller_about.js"></script>
 		<script src="js/controllers/controller_od_matrices.js"></script>
+		<script src="js/controllers/controller_stations_io.js"></script>
+		<script src="js/controllers/controller_twitter.js"></script>
 		<script src="js/controllers/gui_controller.js"></script>
 
 	</head>
@@ -56,6 +60,12 @@
 						</li>
 						<li id="menu_od_matrices" >
 							<a href="#/od_matrices">OD Matrices</a>
+						</li>
+						<li id="menu_stations_io" >
+							<a href="#/stations_io">Stations I/O</a>
+						</li>
+						<li id="menu_twitter" >
+							<a href="#/twitter">Twitter (Test)</a>
 						</li>
 					</ul>
 				</div><!--/.nav-collapse -->

@@ -17,9 +17,10 @@
   },
   "homepage": "https://github.com/juanibarral/tm_project#readme",
   "dependencies": {
-    "async": "^1.4.2",
-    "express": "^4.13.3",
+    "async": "~1.4.2",
+    "express": "~4.13.3",
     "geotabuladb": "0.0.7",
-    "socket.io": "^1.3.7"
+    "socket.io": "~1.3.7",
+    "twitter": "~1.2.5"
   }
 }
