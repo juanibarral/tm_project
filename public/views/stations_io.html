@@ -1,0 +1,16 @@
+<div id="container">
+	<h2> Stations I/O</h2>
+	
+	<h4>Transmilenio stations</h4>
+	<div id="map" style=" height : 500px; "> </div>
+	<h3>I/O Stations comparison</h3>
+	<div id="div_io">
+		<select ng-model="selectedDate" ng-change="updateDate()" ng-options="date.name for date in dates"></select>
+		<select ng-model="selectedItem" ng-change="update()" ng-options="item.name for item in items"></select>
+	</div>
+</div>
+
+
+<script>
+	changeSelection('menu_stations_io');
+</script>	

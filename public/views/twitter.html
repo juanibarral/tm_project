@@ -1,0 +1,30 @@
+<div id="container">
+	<h2> Twitter: </h2>
+	<h5> Count: {{tweets.interval.counter}}</h5>
+	<h5> From: {{tweets.interval.from}}</h5>
+	<h5> To: {{tweets.interval.to}}</h5>
+	<button ng-click="getTweets()">Get tweets</button>
+	<h3>Tweets</h3>
+	<ul style="height:200px; width:100%; overflow:hidden;overflow-y:scroll;">
+		<li ng-repeat="tweet in tweets.text track by $index">
+			{{tweet}}
+		</li>
+	</ul>
+	
+	<div id="div_word_cloud"></div>
+	<h3>Users</h3>
+	<ul style="height:200px; width:30%; overflow:hidden;overflow-y:scroll;">
+		<li ng-repeat="user in tweets.users track by $index">
+			{{user}}
+		</li>
+	</ul>
+	
+	<canvas id="myCanvas"></canvas>
+	
+</div>
+
+
+<script>
+	changeSelection('menu_twitter');
+	
+</script>	

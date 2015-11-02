@@ -1,0 +1,34 @@
+
+.dropdown:hover .dropdown-menu {
+display: block;
+}
+
+.chord path {
+  fill-opacity: .67;
+  stroke: #000;
+  stroke-width: .5px;
+}
+
+div.tooltip {
+  position: absolute;
+  text-align: center;
+  padding: 8px;
+  font: 10px sans-serif;
+  background: lightsteelblue;
+  border: solid 1px #aaa;
+  border-radius: 8px;
+  pointer-events: none;
+}
+
+.info {
+    padding: 6px 8px;
+    font: 14px/16px Arial, Helvetica, sans-serif;
+    background: white;
+    background: rgba(255,255,255,0.8);
+    box-shadow: 0 0 15px rgba(0,0,0,0.2);
+    border-radius: 5px;
+}
+.info h4 {
+    margin: 0 0 5px;
+    color: #777;
+}
