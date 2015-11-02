@@ -172,7 +172,8 @@ app.get('/', function(req, res) {
 	
 });
 
-var server = http.listen(5938, function () {
+//var server = http.listen(5938, function () {
+var server = http.listen(3006, function () {
   var host = server.address().address;
   var port = server.address().port;
 
