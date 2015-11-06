@@ -1,13 +1,18 @@
 <div id="container">
 	<h2> Stations I/O</h2>
-	
+	<div id="div_io">
+		<select ng-model="selectedDate" ng-change="updateDate()" ng-options="date.name for date in dates"> </select>
+		<!--<select ng-model="selectedItem" ng-change="update()" ng-options="item.name for item in items"></select>-->
+	</div>
+	<div class="row">
+		<!--<input type="range" id="slider_io" ng-change="updateRange()"> </input>-->
+		<div range-slider min="range.min" max="range.max" model-max="range.model_max" pin-handle="min" disabled="range.disabled"></div>
+		<h4>Selected hour: {{range.model_date}}</h4>
+	</div>
 	<h4>Transmilenio stations</h4>
 	<div id="map" style=" height : 500px; "> </div>
 	<h3>I/O Stations comparison</h3>
-	<div id="div_io">
-		<select ng-model="selectedDate" ng-change="updateDate()" ng-options="date.name for date in dates"></select>
-		<select ng-model="selectedItem" ng-change="update()" ng-options="item.name for item in items"></select>
-	</div>
+	
 </div>
 
 

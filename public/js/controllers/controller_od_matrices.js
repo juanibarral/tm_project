@@ -25,7 +25,7 @@ function(Service_socket, $scope) {
 		['Por Fase', 'fase'],
 		['Por Troncal', 'troncal'],
 		['Por Zona', 'zona'],
-	]
+	];
 	
 
 	$scope.selectGroup = function(selected) {
@@ -47,7 +47,7 @@ function(Service_socket, $scope) {
 			d3.select("#od_loading_dest").remove();
 			d3.select('#div_od_matrix').append('h6').attr('id', 'od_loading').text('Please select a time of day');
 		}
-	}
+	};
 	$scope.selectTimeOfDay = function(selectedItem) {
 		$scope.currentTime = selectedItem;
 		d3.select("#single-button-tod").text($scope.currentTime[0]);
@@ -65,7 +65,7 @@ function(Service_socket, $scope) {
 			d3.select("#od_loading_dest").remove();
 			d3.select('#div_od_matrix').append('h6').attr('id', 'od_loading').text('Please select a group');
 		}
-	}
+	};
 
 	$scope.data = {
 		map : null,
@@ -75,14 +75,14 @@ function(Service_socket, $scope) {
 		layersControl_dest : null,
 		infoControl_dest : null,
 		
-	}
+	};
 	$scope.createMap = function() {
 		//console.log("create map")
-		d3.select("#map_orig").remove()
-		d3.select("#div_map_orig").append("div").attr("id","map_orig").attr("style", "height : 500px")
+		d3.select("#map_orig").remove();
+		d3.select("#div_map_orig").append("div").attr("id","map_orig").attr("style", "height : 500px");
 		
-		d3.select("#map_dest").remove()
-		d3.select("#div_map_dest").append("div").attr("id","map_dest").attr("style", "height : 500px")
+		d3.select("#map_dest").remove();
+		d3.select("#div_map_dest").append("div").attr("id","map_dest").attr("style", "height : 500px");
 		
 		
 		$scope.data.map = L.map('map_orig').setView([4.66198, -74.09866], 11);
@@ -175,7 +175,7 @@ function(Service_socket, $scope) {
 		$scope.data.map.sync($scope.data.map_dest);
 		$scope.data.map_dest.sync($scope.data.map);
 
-	}
+	};
 	$scope.updateTmStations = function(d)
 	{
 		//console.log("adding layer")
@@ -207,7 +207,7 @@ function(Service_socket, $scope) {
 								weight : 1	
 							});
 						}
-					})
+					});
 				}
 			}).addTo($scope.data.map);
 			
@@ -237,10 +237,10 @@ function(Service_socket, $scope) {
 								weight : 1	
 							});
 						}
-					})
+					});
 				}
 			}).addTo($scope.data.map_dest);
-	}
+	};
 	
 	
 	$scope.updateODMatrix = function(d) {
@@ -285,7 +285,7 @@ function(Service_socket, $scope) {
 		ODMatrix.createODMatrix();
 		
 		$scope.resetHighlightStations();
-	}
+	};
 	
 	$scope.createMap();
 	
@@ -297,13 +297,13 @@ function(Service_socket, $scope) {
 		var selectionFunction = function(parameter)
 		{
 			var weight = 1;
-			var color = '#555'
+			var color = '#555';
 			var opacity = 0;
 			if(d == parameter)
 			{
-				weight = 2
-				color = '#000'
-				opacity = 1
+				weight = 2;
+				color = '#000';
+				opacity = 1;
 			}
 			return {
 				// fillOpacity : opacity,
@@ -312,7 +312,7 @@ function(Service_socket, $scope) {
 				color : color
 				//opacity : opacity
 			};
-		}
+		};
 		var selectionHMFunction = function(param, total, total_dest, layer)
 		{
 			//console.log($scope.currentGroup)
@@ -322,7 +322,7 @@ function(Service_socket, $scope) {
 			
 			var perc_dest = $scope.matrix[index][i]/total_dest;
 			$scope.layerHeatMap_dest.addLatLng([layer._latlng.lat, layer._latlng.lng, 10 + (60 * perc_dest)]);
-		}
+		};
 		
 		
 		var highlightLayerFunction = function(targetLayer) {
@@ -337,7 +337,7 @@ function(Service_socket, $scope) {
 				var values = $scope.matrix[i];
 				var values_dest = [];
 				for (index in $scope.matrix) {
-					values_dest.push($scope.matrix[index][i])
+					values_dest.push($scope.matrix[index][i]);
 				}
 				var total = 0;
 				var total_dest = 0;
@@ -345,22 +345,22 @@ function(Service_socket, $scope) {
 					total += values[index];
 				}
 				for (index in values_dest) {
-					total_dest += values_dest[index]
+					total_dest += values_dest[index];
 				}
 
 				if ($scope.currentGroup[1] == 'fase') {
-					style = selectionFunction(fase)
+					style = selectionFunction(fase);
 					selectionHMFunction(fase, total, total_dest, layer);
 				} else if ($scope.currentGroup[1] == 'troncal') {
-					style = selectionFunction(troncal)
+					style = selectionFunction(troncal);
 					selectionHMFunction(troncal, total, total_dest, layer);
 				} else if ($scope.currentGroup[1] == 'zona') {
-					style = selectionFunction(zona)
+					style = selectionFunction(zona);
 					selectionHMFunction(zona, total, total_dest, layer);
 				}
 				layer.setStyle(style);
 			}
-		}
+		};
 
 		$scope.layerHeatMap.setLatLngs([]);
 		$scope.layerHeatMap_dest.setLatLngs([]);
@@ -368,7 +368,7 @@ function(Service_socket, $scope) {
 		highlightLayerFunction($scope.layerStations_dest);
 		
 		
-	}
+	};
 
 
 	$scope.resetHighlightStations = function() {
@@ -382,7 +382,7 @@ function(Service_socket, $scope) {
 					//opacity : 1
 				});
 			}
-		}
+		};
 
 		$scope.layerHeatMap.setLatLngs([]);
 		$scope.layerHeatMap_dest.setLatLngs([]);
@@ -392,6 +392,6 @@ function(Service_socket, $scope) {
 		
 		
 
-	}
+	};
 
 }]);

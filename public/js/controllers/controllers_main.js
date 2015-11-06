@@ -1,4 +1,4 @@
-var tm_app = angular.module("tm_app", ['ngRoute','ui.bootstrap']);
+var tm_app = angular.module("tm_app", ['ngRoute','ui.bootstrap', 'ui-rangeSlider']);
 
 
 tm_app.config(function($routeProvider){
