@@ -3,7 +3,7 @@ var async = require('async');
 
 var shapes = {
 	'tm_stations' : 'estaciones_shape'
-}
+};
 
 var od_matrices = {
 	'noc' 			: 'matriz_od_01',
@@ -13,14 +13,14 @@ var od_matrices = {
 	'tra_pun_tar' 	: 'matriz_od_05',
 	'pun_tar' 		: 'matriz_od_06',
 	'pre_noc' 		: 'matriz_od_07',
-}
+};
 
 var ioData = {
 	'2015_05_20_in' : 'entradas_2015_05_20_cod',
 	'2015_05_21_in' : 'entradas_2015_05_21_cod',
 	'2015_05_20_out' : 'salidas_2015_05_20_cod',
 	'2015_05_21_out' : 'salidas_2015_05_21_cod',
-}
+};
 
 var getShape = function(params, callback)
 {
@@ -40,7 +40,7 @@ var getShape = function(params, callback)
 	}, function(json) {
 		callback( {json : json, name: params.shape});
 	});
-}
+};
 
 var getOdMatrix = function(params, callback)
 {
@@ -89,7 +89,7 @@ var getOdMatrix = function(params, callback)
 		}
 		callback(od_matrix);
 	});
-}
+};
 
 var getStationsMap = function(callback)
 {
@@ -119,7 +119,7 @@ var getStationsMap = function(callback)
 		callback(data);
 	});
 
-}
+};
 
 var getSalidasData = function(params, callback)
 {
@@ -136,7 +136,7 @@ var getSalidasData = function(params, callback)
 	var year = date.substring(0,4);
 	var month = date.substring(5,7);
 	var day = date.substring(8,10);
-	var tableName = ioData[params.date]
+	var tableName = ioData[params.date];
 	geo.query({
 		debug : true,
 		tableName : tableName,
@@ -178,7 +178,7 @@ var getSalidasData = function(params, callback)
 					{
 						data[station] = {};
 					}
-					data[station][formatDate] = row[station]
+					data[station][formatDate] = row[station];
 				}
 			}
 		}
@@ -186,7 +186,7 @@ var getSalidasData = function(params, callback)
 		callback({categories : categories, data : data});
 	});	
 	
-}
+};
 
 var dateFormatter = function(date)
 {
@@ -199,7 +199,7 @@ var dateFormatter = function(date)
 	var minute = date.getMinutes();
 	minute = minute < 10 ? '0' + minute : minute;
 	return date.getFullYear() + "-" + month + "-" + day + " " + hour +":" +minute; 
-}
+};
 
 Object.size = function(obj) {
     var size = 0, key;
@@ -215,4 +215,4 @@ module.exports = {
 	getOdMatrix : getOdMatrix,
 	getStationsMap : getStationsMap,
 	getSalidasData : getSalidasData,
-}
+};

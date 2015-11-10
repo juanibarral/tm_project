@@ -46,7 +46,7 @@ io.on('connection', function(socket) {
 							for(newP in map[id])
 							{
 								//console.log(newP)
-								shape.json.features[each].properties[newP] = map[id][newP]
+								shape.json.features[each].properties[newP] = map[id][newP];
 							}
 							//console.log("Agrego")
 							//console.log(shape.json.features[each].properties)
@@ -54,7 +54,7 @@ io.on('connection', function(socket) {
 					}
 					
 					socket.emit('shape_' + msg.shape, {caller : msg.caller, data : shape});
-				})
+				});
 			}
 			else
 			{
@@ -127,7 +127,7 @@ io.on('connection', function(socket) {
 
 function buildMatrix(group, matrix, map)
 {
-	var newMatrix = {}
+	var newMatrix = {};
 	//console.log(map);
 	for(each in matrix)
 	{
