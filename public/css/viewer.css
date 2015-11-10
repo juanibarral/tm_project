@@ -168,3 +168,4 @@
 	margin-right : 8px;
 	opacity: 0.7;
 }
+.nav, .pagination, .carousel, .panel-title a { cursor: pointer; }

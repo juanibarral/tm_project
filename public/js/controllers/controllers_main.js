@@ -29,7 +29,10 @@ tm_app.config(function($routeProvider){
 });
 
 
-
+tm_app.controller('CollapseDemoCtrl', function ($scope) {
+	console.log('loaded?');
+  $scope.isCollapsed = true;
+});
 
 
 

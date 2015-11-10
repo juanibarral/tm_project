@@ -1,7 +1,17 @@
 tm_app.controller('controller_stations_io',['Service_socket', '$scope', 
 function(Service_socket, $scope) 
 {
-	$scope.stationsData = [];
+	
+	$scope.stationsData = {
+		raw : [],
+		min : 0,
+		max : 0,
+		colorScheme : 'YlOrBr',
+		colorMap : null,
+		colorScale : null,
+		colorTicks : null,
+		currentSelected : {}
+	};
 	$scope.selectedItem;
 	$scope.stationsMap;
 	$scope.items = [
@@ -16,36 +26,40 @@ function(Service_socket, $scope)
 		model_max : 0,
 		model_date : "n/a",
 	};
+	$scope.selrange = {
+		min : 0,
+		max : 100,
+		disabled : true,
+		model_min : 20,
+		model_max : 80
+	};
 	
 	$scope.$watch('range.model_max', function(newVal, oldVal){
     	if(!$scope.range.disabled)
     	{
-    		$scope.range.model_date = $scope.stationsData.categories[newVal];
-    		var targetLayer = $scope.data.stationsLayer;
-    		var localMin = Number.MAX_VALUE;
-    		var localMax = Number.MIN_VALUE;
-    		for (each in targetLayer._layers) {
-    			var layer = targetLayer._layers[each];
-				var feature = layer.feature;
-				var tm_cod = "e_" + feature.properties.codigo_tm;
-				if($scope.stationsData.data[tm_cod])
+    		$scope.range.model_date = $scope.stationsData.raw.categories[newVal];
+    		var model_date = $scope.range.model_date;
+    		$scope.colorStations(model_date);
+    		$scope.data.iochart.xgrids([{value : $scope.formatDate($scope.range.model_date)}]);
+    		
+    		if($scope.data.selectionChart)
+    		{
+	    		var chartData = [['Trips']];
+				var selectedHour = $scope.stationsData.raw.categories[$scope.range.model_max];
+				var data = $scope.stationsData.raw.data;
+				for(index in data)
 				{
-					var value = $scope.stationsData.data[tm_cod][$scope.range.model_date];
-					if(localMin > value)
-					{
-						localMin = value;
-					}
-					if(localMax < value)
-					{
-						localMax = value;
-					}
+					chartData[0].push(data[index][$scope.range.model_date]);
 				}
-				else
-				{
-					console.log(tm_cod + " not found");
-				}
+				$scope.updateSelectionData(chartData);
     		}
-    		console.log(localMin + " ---- " + localMax);
+    	}
+  	});
+  	
+  	$scope.$watch('selrange.model_max', function(newVal, oldVal){
+    	if(!$scope.selrange.disabled)
+    	{
+    		
     	}
   	});
 	
@@ -70,7 +84,7 @@ function(Service_socket, $scope)
 	$scope.update = function()
 	{
 		if ($scope.selectedItem) {
-			var rawData = $scope.stationsData.data[$scope.selectedItem.id];
+			var rawData = $scope.stationsData.raw.data[$scope.selectedItem.id];
 			//console.log(rawData)
 			var chartData = [$scope.selectedItem.id];
 			for (i in rawData) {
@@ -95,14 +109,19 @@ function(Service_socket, $scope)
 		});
 		
 		$scope.createChart();
+		
+		
 	};
 	
 	$scope.data = {
 		map : null,
 		layersControl : null,
 		iochart : null,
-		infoControl : null
+		infoControl : null,
+		mapLegend : null
 	};
+	
+	
 	
 	$scope.data.infoControl = L.control();
 	$scope.data.infoControl.onAdd = function(map){
@@ -113,7 +132,21 @@ function(Service_socket, $scope)
 		
 	$scope.data.infoControl.update = function(props) {
 		if (props) {
-			this._div.innerHTML = '<h4>Info</h4><b>Nombre: </b>' + props.nombre + '<br>' + '<b>Cod: </b>' + props.numtm + "<br>" + '<b>Fase: </b>' + props.fase + "<br>" + '<b>Troncal: </b>' + props.troncal + "<br>" + '<b>Zona: </b>' + props.zona;
+			var trips = 'n/a';
+			var tm_cod = 'e_' + props.numtm;
+			
+			if($scope.stationsData.raw.data && $scope.stationsData.raw.data[tm_cod])
+			{
+				trips = $scope.stationsData.raw.data[tm_cod][$scope.range.model_date];
+			}
+			
+			this._div.innerHTML = '<h4>Info</h4>' + 
+				'<b>Name: </b>' + props.nombre + '<br>' +
+				'<b>Cod: </b>' + props.numtm + "<br>" + 
+				'<b>Fase: </b>' + props.fase + "<br>" + 
+				'<b>Troncal: </b>' + props.troncal + "<br>" + 
+				'<b>Zona: </b>' + props.zona + '<br>' + 
+				'<b>Trips: </b>' + trips;
 		} else {
 			this._div.innerHTML = '<h4>Info</h4>';
 		}
@@ -143,9 +176,9 @@ function(Service_socket, $scope)
 				pointToLayer : function(feature, latlng) {
 					return L.circleMarker(latlng, {
 						radius : 4,
-						color : '#000',
+						color : '#AAA',
 						weight : 1,
-						
+						fillOpacity : 0.8
 					});
 				},
 				onEachFeature : function(feature, layer){
@@ -209,45 +242,163 @@ function(Service_socket, $scope)
 						$scope.data.iochart.load({
 							unload : id
 						});
+						delete $scope.stationsData.currentSelected[id];
+					},
+					onmouseover : function(id){
+						// console.log(id);
+						// console.log($scope.stationsData.currentSelected);
+						$scope.colorStations($scope.range.model_date, $scope.stationsData.currentSelected[id]);
+					},
+					onmouseout : function(id){
+						$scope.colorStations($scope.range.model_date);
 					}
 				}
+			},
+			transition : {
+				duration : 0
 			}
 		}); 
 	};
+	
+	$scope.createSelectionChart = function()
+	{
+		console.log("Creating div??");
+		d3.select("#div_selection_data_chart").remove();
+		d3.select("#div_io_selection").append("div").attr("id", "div_selection_data_chart");
+		$scope.data.selectionChart = c3.generate({
+			bindto : '#div_selection_data_chart',
+			size : {
+				height : 250
+			},
+			data : {
+				type : 'bar',
+				columns : [],
+			},
+			axis: {
+				x: {
+					type : 'category',
+    				categories: [],
+    				show : false
+  					}
+			},
+			transition : {
+				duration : 0
+			}
+		}); 
+	};
+	
 	$scope.updateData = function(data){
 		//console.log("data")
-		$scope.stationsData = data.data;
+		$scope.stationsData.raw = data.data;
 		$scope.items = [];
 		$scope.stationsMap = data.stationsMap;
 		
-		for(d in $scope.stationsData.data)
+		$scope.stationsData.min = Number.MAX_VALUE;
+    	$scope.stationsData.max = Number.MIN_VALUE;
+		
+		for(d in $scope.stationsData.raw.data)
 		{
 			var name = $scope.stationsMap[d.substring(2)] ? $scope.stationsMap[d.substring(2)].estacion : "n/a";
 			
 			$scope.items.push({id: d, name : name});
+			
+			for(i in $scope.stationsData.raw.data[d])
+			{
+				var value = $scope.stationsData.raw.data[d][i];
+				if($scope.stationsData.min > value)
+				{
+					$scope.stationsData.min = value;
+				}
+				if($scope.stationsData.max < value)
+				{
+					$scope.stationsData.max = value;
+				}
+			}
 		}
 		//$scope.$apply();
 		//console.log($scope.stationsData);
-		$scope.range.max = $scope.stationsData.categories.length - 1;
+		var linearScale = d3.scale.linear().domain([$scope.stationsData.min, $scope.stationsData.max]);
+		$scope.stationsData.colorTicks = linearScale.ticks(8);
+		var ticks = $scope.stationsData.colorTicks;
+		if(ticks.length > 9)
+		{
+			var rawTicks = [];
+			for(var i = 0; i < 8; i++)
+			{
+				rawTicks.push(ticks[i]);
+			}
+			ticks = rawTicks;
+		}
+		$scope.stationsData.colorTicks = ticks;
+		$scope.stationsData.colorMap = colorbrewer[$scope.stationsData.colorScheme][ticks.length + 1];
+		$scope.stationsData.colorMap[0] = '#ff0000';
+		var colorMap = $scope.stationsData.colorMap;
+		$scope.stationsData.colorScale = d3.scale.threshold().domain(ticks).range(colorMap);
+		
+		
+		if($scope.data.mapLegend)
+		{
+			$scope.data.mapLegend.removeFrom($scope.data.map);
+			$scope.data.mapLegend = null;
+		}
+		$scope.data.mapLegend = L.control({position : 'bottomright'});
+		$scope.data.mapLegend.onAdd = function (map) {
+
+		    var div = L.DomUtil.create('div', 'info legend');
+		    // loop through our density intervals and generate a label with a colored square for each interval
+		    var colors = $scope.stationsData.colorMap;
+		    var values = $scope.stationsData.colorTicks;
+		    //div.innerHTML += '<i style="background:' + colors[0] + '"></i>' + values[0] + '<br>';
+		    for (var i = 1; i < colors.length ; i++) {
+		        div.innerHTML +=
+		            '<i style="background:' + colors[i] + '"></i>' + 
+		            	values[i - 1] + (values[i] ? '<br>' : '+');
+		    }
+		
+		    return div;
+		};
+		
+		$scope.data.mapLegend.addTo($scope.data.map);
+
+		
+		$scope.range.max = $scope.stationsData.raw.categories.length - 1;
 		$scope.range.disabled = false;
+		$scope.range.model_max = 1;
 		$scope.$apply();
+		$scope.range.model_max = 0;
+		$scope.$apply();
+		
+		
+		
+		$scope.createSelectionChart();
+		var chartData = [['Trips']];
+		var selectedHour = $scope.stationsData.raw.categories[$scope.range.model_max];
+		var data = $scope.stationsData.raw.data;
+		var categories = [];
+		for(index in data)
+		{
+			var dataName = index.substring(2) ;
+			dataName = $scope.stationsMap[dataName] ? $scope.stationsMap[dataName].estacion : "n/a" ;
+			categories.push(dataName);
+			chartData[0].push(data[index][selectedHour]);
+		}
+		categories.sort();
+		$scope.selrange.max = categories.length - 1;
+		$scope.selrange.disabled = false;
+		$scope.selrange.model_max = 50;
+		$scope.$apply();
+		
+		$scope.updateSelectionData(chartData, categories);
+		
 	};
 	
 	$scope.updateChart = function(rawCategories, chartData)
 	{
-		//console.log(rawCategories);
-		//var rawCategories = rawData.categories;
 		var categories = ['X'];
 		for(i in rawCategories)
 		{
 			var rawDate = rawCategories[i];
-			var year = parseInt(rawDate.substring(0,4));
-			var month = parseInt(rawDate.substring(5,7));
-			var day = parseInt(rawDate.substring(8,10));
-			var hour = parseInt(rawDate.substring(11,13));
-			var minute = parseInt(rawDate.substring(14,16));
-			var date = new Date(year, month, day, hour, minute, 0, 0);
-			categories.push(date);
+			categories.push($scope.formatDate(rawDate));
 		}
 		
 		
@@ -260,24 +411,88 @@ function(Service_socket, $scope)
 	$scope.mouseClicked = function(e){
 		var cod_tm = e.target.feature.properties.codigo_tm;
 		var selectedId = 'e_' + cod_tm;
-		var rawData = $scope.stationsData.data[selectedId];
+		var rawData = $scope.stationsData.raw.data[selectedId];
 			//console.log(rawData)
 		var chartData = [selectedId];
 		for (i in rawData) {
 			chartData.push(rawData[i]);
 		}
 
-		var dataName = chartData[0].substring(2);
-		dataName = $scope.stationsMap[dataName] ? $scope.stationsMap[dataName].estacion : "n/a";
+		var stationId = chartData[0].substring(2);
+		var dataName = $scope.stationsMap[stationId] ? $scope.stationsMap[stationId].estacion : "n/a";
 		chartData[0] = dataName;
-
-		$scope.updateChart($scope.stationsData.categories, chartData); 
+		$scope.stationsData.currentSelected[dataName] = stationId;
+		
+		$scope.updateChart($scope.stationsData.raw.categories, chartData); 
 	};
 
 	$scope.createMap();
-	$scope.updateRange = function()
+
+	$scope.formatDate = function(rawDate)
 	{
-		console.log($scope.range.model_max);
+		var year = parseInt(rawDate.substring(0,4));
+		var month = parseInt(rawDate.substring(5,7));
+		var day = parseInt(rawDate.substring(8,10));
+		var hour = parseInt(rawDate.substring(11,13));
+		var minute = parseInt(rawDate.substring(14,16));
+		return new Date(year, month, day, hour, minute, 0, 0);
+	};
+	
+	$scope.colorStations = function(date, stationId)
+	{
+		var targetLayer = $scope.data.stationsLayer;
+		for (each in targetLayer._layers) {
+			var layer = targetLayer._layers[each];
+			var feature = layer.feature;
+			var tm_cod = "e_" + feature.properties.codigo_tm;
+			 
+			if($scope.stationsData.raw.data[tm_cod])
+			{
+				var value = $scope.stationsData.raw.data[tm_cod][date];
+				var color = $scope.stationsData.colorScale(value);
+				
+				if(stationId)
+				{
+					if('e_' + stationId == tm_cod)
+					{
+						$scope.data.infoControl.update(feature.properties);
+					}	
+					else
+					{
+						color = '#AAA';
+					}						
+				}
+				else
+				{
+					$scope.data.infoControl.update();
+				}
+				
+				layer.setStyle({
+					fillColor : color
+				});
+			}
+			else
+			{
+				console.log(tm_cod + " not found");
+			}
+		}
+	};
+	
+	$scope.updateSelectionData = function(chartData, categories)
+	{
+		if(categories)
+		{
+			$scope.data.selectionChart.load({
+				columns : chartData,
+				categories : categories
+			});
+		}
+		else
+		{
+			$scope.data.selectionChart.load({
+				columns : chartData,
+			});
+		}
 	};
 	
 }]);

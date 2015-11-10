@@ -11,6 +11,9 @@ function(Service_socket, $scope) {
 	$scope.matrix;
 	$scope.matrixKeys;
 	
+	$scope.origColor = '#d95f0e';
+	$scope.destColor = '#88419d';
+	
 	$scope.timeItems = [
 		['Nocturno', 'noc'],
 		['Hora pico (a.m.)', 'pun_man'],
@@ -279,7 +282,9 @@ function(Service_socket, $scope) {
 			destWidth : 500,
 			destHeight : 500,
 			onmouseover : $scope.highlightStations,
-			onmouseout : $scope.resetHighlightStations
+			onmouseout : $scope.resetHighlightStations,
+			origColor : $scope.origColor,
+			destColor : $scope.destColor,
 		});
 		
 		ODMatrix.createODMatrix();

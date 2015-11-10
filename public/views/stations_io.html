@@ -1,21 +1,48 @@
+
 <div id="container">
-	<h2> Stations I/O</h2>
-	<div id="div_io">
+	<h2> Stations I/O: {{selectedDate.name}}</h2>
+	<div class="row">
 		<select ng-model="selectedDate" ng-change="updateDate()" ng-options="date.name for date in dates"> </select>
-		<!--<select ng-model="selectedItem" ng-change="update()" ng-options="item.name for item in items"></select>-->
 	</div>
 	<div class="row">
-		<!--<input type="range" id="slider_io" ng-change="updateRange()"> </input>-->
+		<h4>Select hour: {{range.model_date}}</h4>
 		<div range-slider min="range.min" max="range.max" model-max="range.model_max" pin-handle="min" disabled="range.disabled"></div>
-		<h4>Selected hour: {{range.model_date}}</h4>
 	</div>
-	<h4>Transmilenio stations</h4>
-	<div id="map" style=" height : 500px; "> </div>
-	<h3>I/O Stations comparison</h3>
+	<!--<div class="row" id="div_io">
+		<h3>I/O Stations comparison (Select stations from map)</h3>	
+	</div>-->
+	
+	<div ng-controller="CollapseDemoCtrl">
+		<button type="button" class="btn btn-default" ng-click="isCollapsed = !isCollapsed">I/O Stations comparison</button>
+		
+		<div uib-collapse="isCollapsed">
+			<uib-tabset>
+   				<uib-tab heading="Stations">
+					<div id="div_io">	
+					</div>
+				</uib-tab>
+				<uib-tab heading="Select">
+					<!--<div range-slider min="selrange.min" max="selrange.max" model-min="selrange.model.min" model-max="selrange.model_max" disabled="selrange.disabled"></div>
+					<h2>{{selrange.min}} -- {{selrange.max}}</h2>
+					<h2>{{selrange.model_min}} -- {{selrange.model_max}}</h2>-->
+					<div id="div_io_selection">	
+					</div>
+				</uib-tab>
+  			</uib-tabset>
+		</div>
+	</div>
+	
+	<div class="row">
+		<h4>Transmilenio stations</h4>
+		<div id="map" style=" height : 500px; "> </div>	
+	</div>
+	
 	
 </div>
 
 
+
 <script>
 	changeSelection('menu_stations_io');
+	
 </script>	
