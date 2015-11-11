@@ -10,9 +10,13 @@ function(Service_socket, $scope) {
 	$scope.layerHeatMap_dest = null;
 	$scope.matrix;
 	$scope.matrixKeys;
+	$scope.rawMatrix;
+	$scope.origValuesPerStation;
+	$scope.destValuesPerStation;
+	$scope.currentSelected;
 	
-	$scope.origColor = '#d95f0e';
-	$scope.destColor = '#88419d';
+	$scope.origColors = colorbrewer.YlOrBr[9];//'#d95f0e';
+	$scope.destColors = colorbrewer.BuPu[9];//'#88419d';
 	
 	$scope.timeItems = [
 		['Nocturno', 'noc'],
@@ -92,6 +96,33 @@ function(Service_socket, $scope) {
 		$scope.data.map_dest = L.map('map_dest').setView([4.66198, -74.09866], 11);
 		$scope.data.layersControl = L.control.layers();
 		$scope.data.layersControl_dest = L.control.layers();
+		$scope.data.legendOrig = L.control({position : 'bottomright'});
+
+		$scope.data.legendOrig.onAdd = function(map) {
+			var div = L.DomUtil.create('div', 'info legend');
+			// loop through our density intervals and generate a label with a colored square for each interval
+			for (var i = 0; i < $scope.origColors.length; i++) {
+				div.innerHTML += '<i style="background:' + $scope.origColors[i] + '"></i><br>';
+			}
+
+			return div;
+		}; 
+
+		$scope.data.legendOrig.addTo($scope.data.map);
+		
+		$scope.data.legendDest = L.control({position : 'bottomright'});
+
+		$scope.data.legendDest.onAdd = function(map) {
+			var div = L.DomUtil.create('div', 'info legend');
+			// loop through our density intervals and generate a label with a colored square for each interval
+			for (var i = 0; i < $scope.destColors.length; i++) {
+				div.innerHTML += '<i style="background:' + $scope.destColors[i] + '"></i><br>';
+			}
+
+			return div;
+		}; 
+
+		$scope.data.legendDest.addTo($scope.data.map_dest);
 		
 		$scope.data.infoControl = L.control();
 		$scope.data.infoControl.onAdd = function(map){
@@ -107,6 +138,14 @@ function(Service_socket, $scope) {
 						'<b>Fase: </b>' + props.fase + "<br>" +
 						'<b>Troncal: </b>' + props.troncal + "<br>" +
 						'<b>Zona: </b>' + props.zona;
+					if($scope.origValuesPerStation)
+					{
+						var tm_id = props.numtm;	
+						tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
+						this._div.innerHTML += '<br><b> Trips from ' + $scope.currentSelected + '</b><br>' +
+							$scope.origValuesPerStation[tm_id];
+						
+					}
 				}
 				else
 				{
@@ -153,8 +192,18 @@ function(Service_socket, $scope) {
 		$scope.layerHeatMap = L.heatLayer(
 				[], 
 				{
-					radius: 15,
-					gradient : {0.35 : '#fff7bc', 0.65 : '#fec44f', 1 : '#d95f0e'}
+					radius: 10,
+					//gradient : {0.35 : '#fff7bc', 0.65 : '#fec44f', 1 : '#d95f0e'}
+					gradient : {
+						0.1 : $scope.origColors[0], 
+						0.2 : $scope.origColors[1], 
+						0.3 : $scope.origColors[2], 
+						0.4 : $scope.origColors[3],
+						0.5 : $scope.origColors[4],
+						0.6 : $scope.origColors[5], 
+						0.7 : $scope.origColors[6], 
+						0.8 : $scope.origColors[7], 
+						0.9 : $scope.origColors[8]}
 				}
 			);
 		//$scope.layerHeatMap.bringToBack();
@@ -165,8 +214,18 @@ function(Service_socket, $scope) {
 		$scope.layerHeatMap_dest = L.heatLayer(
 				[], 
 				{
-					radius: 15,
-					gradient : {0.35 : '#b3cde3', 0.65 : '#8c96c6', 1 : '#88419d'}
+					radius: 10,
+					//gradient : {0.35 : '#b3cde3', 0.65 : '#8c96c6', 1 : '#88419d'}
+					gradient : {
+						0.1 : $scope.destColors[0], 
+						0.2 : $scope.destColors[1], 
+						0.3 : $scope.destColors[2], 
+						0.4 : $scope.destColors[3],
+						0.5 : $scope.destColors[4],
+						0.6 : $scope.destColors[5], 
+						0.7 : $scope.destColors[6], 
+						0.8 : $scope.destColors[7], 
+						0.9 : $scope.destColors[8]}
 				}
 			);
 		$scope.layerHeatMap_dest.addTo($scope.data.map_dest);
@@ -181,6 +240,7 @@ function(Service_socket, $scope) {
 	};
 	$scope.updateTmStations = function(d)
 	{
+		
 		//console.log("adding layer")
 		//console.log(d)
 			//console.log(d.data.json)
@@ -247,6 +307,24 @@ function(Service_socket, $scope) {
 	
 	
 	$scope.updateODMatrix = function(d) {
+		$scope.rawMatrix = d;
+		
+		var total = 0;
+		var total_dest = 0;
+		for(each in d)
+		{
+			for(t in d[each]['raw'])
+				total += d[each]['raw'][t];
+			for(t in d[each]['raw_dest'])
+				total_dest += d[each]['raw_dest'][t];
+		}
+		
+		
+		
+		
+		
+		
+		
 		d3.select('#od_matrix_chord').remove();
 		d3.select("#od_loading").remove();
 		d3.select('#div_od_matrix').append('h6').attr('id', 'od_loading').text('Loading data....');
@@ -257,9 +335,6 @@ function(Service_socket, $scope) {
 		d3.select('#div_od_matrix_dest').append('h6').attr('id', 'od_loading_dest').text('Loading data....');
 		d3.select('#div_od_matrix_dest').append('div').attr('id', 'od_matrix_chord_dest');
 		
-		
-		
-
 		$scope.matrix = [];
 		//console.log(rawData);
 		$scope.matrixKeys = Object.keys(d).sort();
@@ -283,8 +358,8 @@ function(Service_socket, $scope) {
 			destHeight : 500,
 			onmouseover : $scope.highlightStations,
 			onmouseout : $scope.resetHighlightStations,
-			origColor : $scope.origColor,
-			destColor : $scope.destColor,
+			origColor : $scope.origColors[9],
+			destColor : $scope.destColors[9],
 		});
 		
 		ODMatrix.createODMatrix();
@@ -297,8 +372,7 @@ function(Service_socket, $scope) {
 	$scope.highlightStations = function(d, i) {
 		//console.log("over " + this.groupBy)
 		//console.log($scope.currentGroup)
-		
-		
+		$scope.currentSelected = d;
 		var selectionFunction = function(parameter)
 		{
 			var weight = 1;
@@ -311,13 +385,11 @@ function(Service_socket, $scope) {
 				opacity = 1;
 			}
 			return {
-				// fillOpacity : opacity,
-				// fillColor : color
 				weight : weight,
 				color : color
-				//opacity : opacity
 			};
 		};
+		
 		var selectionHMFunction = function(param, total, total_dest, layer)
 		{
 			//console.log($scope.currentGroup)
@@ -328,6 +400,18 @@ function(Service_socket, $scope) {
 			var perc_dest = $scope.matrix[index][i]/total_dest;
 			$scope.layerHeatMap_dest.addLatLng([layer._latlng.lat, layer._latlng.lng, 10 + (60 * perc_dest)]);
 		};
+		var selectionHMFunctionForEach = function(layer, tm_cod)
+		{
+			var localData = $scope.origValuesPerStation[tm_cod];
+			var normal = origScale(localData);
+			var hmValue = 100 * normal;
+			
+			$scope.layerHeatMap.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
+			localData = valuesForEachDest[tm_cod];
+			normal = destScale(localData);
+			hmValue = 100 * normal;
+			$scope.layerHeatMap_dest.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
+		};
 		
 		
 		var highlightLayerFunction = function(targetLayer) {
@@ -337,38 +421,119 @@ function(Service_socket, $scope) {
 				var fase = feature.properties.fase;
 				var troncal = feature.properties.troncal;
 				var zona = feature.properties.zona;
-				var color = '#000000';
-				var style;
-				var values = $scope.matrix[i];
-				var values_dest = [];
-				for (index in $scope.matrix) {
-					values_dest.push($scope.matrix[index][i]);
+					
+				var each_station = true;
+				if(each_station)
+				{
+					var tm_id = feature.properties.numtm;	
+					tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
+					if ($scope.currentGroup[1] == 'fase') {
+						style = selectionFunction(fase);
+					} else if ($scope.currentGroup[1] == 'troncal') {
+						style = selectionFunction(troncal);
+					} else if ($scope.currentGroup[1] == 'zona') {
+						style = selectionFunction(zona);
+					}
+					layer.setStyle(style);
+					
+					selectionHMFunctionForEach(layer, tm_id);
 				}
-				var total = 0;
-				var total_dest = 0;
-				for (index in values) {
-					total += values[index];
+				else
+				{
+					
+					var color = '#000000';
+					var style;
+					var values = $scope.matrix[i];
+					var values_dest = [];
+					for (index in $scope.matrix) {
+						values_dest.push($scope.matrix[index][i]);
+					}
+					var total = 0;
+					var total_dest = 0;
+					for (index in values) {
+						total += values[index];
+					}
+					for (index in values_dest) {
+						total_dest += values_dest[index];
+					}
+	
+					if ($scope.currentGroup[1] == 'fase') {
+						style = selectionFunction(fase);
+						selectionHMFunction(fase, total, total_dest, layer);
+					} else if ($scope.currentGroup[1] == 'troncal') {
+						style = selectionFunction(troncal);
+						selectionHMFunction(troncal, total, total_dest, layer);
+					} else if ($scope.currentGroup[1] == 'zona') {
+						style = selectionFunction(zona);
+						selectionHMFunction(zona, total, total_dest, layer);
+					}
+					layer.setStyle(style);
 				}
-				for (index in values_dest) {
-					total_dest += values_dest[index];
-				}
-
-				if ($scope.currentGroup[1] == 'fase') {
-					style = selectionFunction(fase);
-					selectionHMFunction(fase, total, total_dest, layer);
-				} else if ($scope.currentGroup[1] == 'troncal') {
-					style = selectionFunction(troncal);
-					selectionHMFunction(troncal, total, total_dest, layer);
-				} else if ($scope.currentGroup[1] == 'zona') {
-					style = selectionFunction(zona);
-					selectionHMFunction(zona, total, total_dest, layer);
-				}
-				layer.setStyle(style);
 			}
 		};
 
 		$scope.layerHeatMap.setLatLngs([]);
 		$scope.layerHeatMap_dest.setLatLngs([]);
+		
+		
+		$scope.origValuesPerStation = $scope.rawMatrix[d]['raw'];
+		var valuesForEach = $scope.origValuesPerStation;
+		var minmax = [Number.MAX_VALUE, Number.MIN_VALUE];
+		var total = 0;
+		
+		/*
+		for(each in $scope.rawMatrix)
+		{
+			var raw_i = $scope.rawMatrix[each]['raw'];
+			for(v in raw_i)
+			{
+				if(minmax[0] > raw_i[v])
+					minmax[0] = raw_i[v];
+				if(minmax[1] < raw_i[v])
+					minmax[1] = raw_i[v];
+				total += raw_i[v];
+			}
+		}
+		*/
+		
+		///*
+		for(v in valuesForEach)
+		{
+			if(minmax[0] > valuesForEach[v])
+				minmax[0] = valuesForEach[v];
+			if(minmax[1] < valuesForEach[v])
+				minmax[1] = valuesForEach[v];
+			total += valuesForEach[v];
+		}
+		//*/
+		
+		var origScale = d3.scale.linear().domain(minmax);
+		
+		var valuesForEachDest = {};
+		var rawMatrix = $scope.rawMatrix;
+		
+		for(each in valuesForEach)
+		{
+			valuesForEachDest[each] = 0;
+			for(each_i in rawMatrix)
+			{
+				valuesForEachDest[each] += rawMatrix[each_i]['raw'][each];
+			}
+		}
+		
+		var minmaxDest = [Number.MAX_VALUE, Number.MIN_VALUE];
+		var totalDest = 0;
+		for(v in valuesForEachDest)
+		{
+			if(minmaxDest[0] > valuesForEachDest[v])
+				minmaxDest[0] = valuesForEachDest[v];
+			if(minmaxDest[1] < valuesForEachDest[v])
+				minmaxDest[1] = valuesForEachDest[v];
+			totalDest += valuesForEachDest[v];
+		}
+		var destScale = d3.scale.linear().domain(minmaxDest);
+		
+		
 		highlightLayerFunction($scope.layerStations);
 		highlightLayerFunction($scope.layerStations_dest);
 		
@@ -378,6 +543,7 @@ function(Service_socket, $scope) {
 
 	$scope.resetHighlightStations = function() {
 		
+		$scope.origValuesPerStation = null;
 		var resetHighlightFunction = function(targetLayer) {
 			for (each in targetLayer._layers) {
 				var layer = targetLayer._layers[each];
@@ -394,9 +560,6 @@ function(Service_socket, $scope) {
 		
 		resetHighlightFunction($scope.layerStations);
 		resetHighlightFunction($scope.layerStations_dest);
-		
-		
-
 	};
 
 }]);

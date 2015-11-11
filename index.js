@@ -128,9 +128,14 @@ io.on('connection', function(socket) {
 function buildMatrix(group, matrix, map)
 {
 	var newMatrix = {};
+	var destMatrix = {};
 	//console.log(map);
+	//console.log(group);
+	//console.log(matrix);
+	var total = 0;
 	for(each in matrix)
 	{
+		destMatrix[each] = {};
 		var destinations = matrix[each];
 		var newOrigin = map[parseInt(each)][group];
 		
@@ -155,9 +160,58 @@ function buildMatrix(group, matrix, map)
 				newMatrix[newOrigin]['raw'][dest] = 0;
 			}
 			newMatrix[newOrigin]['raw'][dest] += parseInt(destinations[dest]);
+			total += parseInt(destinations[dest]);
 		}
 	}
+	
+	for(each in destMatrix)
+	{
+		for(e in matrix)
+		{
+			if(!destMatrix[each][e])
+				destMatrix[each][e] = 0;
+			destMatrix[each][e] = matrix[e][each];
+		}
+	}
+	
+	var total_dest = 0;
+	for(each in destMatrix)
+	{
+		var origins = destMatrix[each];
+		var newDest = map[parseInt(each)][group];
+		if(!newMatrix[newDest]['raw_dest'])
+		{
+			newMatrix[newDest]['raw_dest'] = {};	
+		}
+		
+		for(orig in origins)
+		{
+			var newOrigin = map[parseInt(orig)][group];
+			if(!newMatrix[newDest]['raw_dest'][orig])
+			{
+				newMatrix[newDest]['raw_dest'][orig] = 0;
+			}
+			newMatrix[newDest]['raw_dest'][orig] += parseInt(origins[orig]);
+			total_dest += parseInt(origins[orig]);
+		}
+	}
+	
+	console.log(total);
+	console.log(total_dest);
+	
+	var total = 0;
+	var total_dest = 0;
+	var d = newMatrix;
+	for(each in d)
+	{
+		for(t in d[each]['raw'])
+			total += d[each]['raw'][t];
+		for(t in d[each]['raw_dest'])
+			total_dest += d[each]['raw_dest'][t];
+	}
 
+	console.log(total);
+	console.log(total_dest);
 	return newMatrix;
 }
 
