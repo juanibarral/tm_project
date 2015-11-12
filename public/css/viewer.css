@@ -169,3 +169,34 @@
 	opacity: 0.7;
 }
 .nav, .pagination, .carousel, .panel-title a { cursor: pointer; }
+
+.c3-region.region_dests_0{
+	fill : #ffffe5;
+}
+.c3-region.region_dests_1{
+	fill : #fff7bc;
+}
+.c3-region.region_dests_2{
+	fill : #fee391;
+}
+.c3-region.region_dests_3{
+	fill : #fec44f;
+}
+.c3-region.region_dests_4{
+	fill : #fe9929;
+}
+.c3-region.region_dests_5{
+	fill : #ec7014;
+}
+.c3-region.region_dests_6{
+	fill : #cc4c02;
+}
+.c3-region.region_dests_7{
+	fill : #993404;
+}
+.c3-region.region_dests_8{
+	fill : #662506;
+}
+.c3-region.region_dests_test{
+	fill : red;
+}

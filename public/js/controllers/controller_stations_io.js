@@ -214,7 +214,7 @@ function(Service_socket, $scope)
 		$scope.data.iochart = c3.generate({
 			bindto : '#div_io_data_chart',
 			size : {
-				height : 250
+				height : 150
 			},
 			data : {
 				x : 'X',

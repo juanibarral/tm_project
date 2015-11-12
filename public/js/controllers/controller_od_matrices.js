@@ -11,12 +11,49 @@ function(Service_socket, $scope) {
 	$scope.matrix;
 	$scope.matrixKeys;
 	$scope.rawMatrix;
-	$scope.origValuesPerStation;
-	$scope.destValuesPerStation;
+	$scope.valuesPerStation = {
+		origins : null,
+		destinations : null,
+		originsminmax : [0,1],
+		destinationsminmax : [0,1],
+	};
 	$scope.currentSelected;
 	
-	$scope.origColors = colorbrewer.YlOrBr[9];//'#d95f0e';
-	$scope.destColors = colorbrewer.BuPu[9];//'#88419d';
+	$scope.infoCharts = {
+		datanames : ["d1","d2","d3","d4","d5","d6","d7","d8","d9"],
+		origins : {
+			chart : null,
+			data : [],
+			colors : {}
+		},
+		destinations : {
+			chart : null,
+			data : [],
+			colors : {},
+		}
+	};
+	
+	$scope.origColors = {
+		colormap : colorbrewer.YlOrBr[9],
+		colorscale : null,
+	};
+	$scope.origColors.colorscale = d3.scale.threshold().domain([
+		0, 0.125, 0.25, 0.375, 0.5, 0.625, 0.75, 0.875
+	]).range($scope.origColors.colormap);
+	$scope.destColors = {
+		colormap : colorbrewer.BuPu[9],
+		colorscale : null
+	};
+	$scope.infoCharts.destinations.data.push(['data']);
+	for(i in $scope.infoCharts.datanames)
+	{
+		//$scope.infoCharts.destinations.data.push([$scope.infoCharts.datanames[i], 0]);
+		$scope.infoCharts.destinations.data[0].push(0);
+		$scope.infoCharts.origins.data.push([$scope.infoCharts.datanames[i], 0]);
+		
+		$scope.infoCharts.destinations.colors[$scope.infoCharts.datanames[i]] = $scope.origColors.colormap[i];
+		$scope.infoCharts.origins.colors[$scope.infoCharts.datanames[i]] = $scope.destColors.colormap[i];
+	}
 	
 	$scope.timeItems = [
 		['Nocturno', 'noc'],
@@ -33,6 +70,61 @@ function(Service_socket, $scope) {
 		['Por Troncal', 'troncal'],
 		['Por Zona', 'zona'],
 	];
+	
+	$scope.createInfoCharts = function()
+	{
+		$scope.infoCharts['destinations'].chart = c3.generate({
+			bindto : '#div_infochart_dests',
+			size : {
+				width : 50,
+				height : 150,
+			},
+			bar : {
+				width : {
+					ratio : 0.99
+				}
+			},
+		    data: {
+		    	type : 'bar',
+		        columns: [
+		            // ['data1', 30, 200, 100, 400, 150, 250],
+		            // ['data2', 50, 20, 10, 40, 15, 25]
+		        ],
+		        color : function(color, d) {
+		        	
+		        	return $scope.origColors.colormap[d.index];
+		        }
+		       // colors : $scope.infoCharts.destinations.colors,
+		       // order : null
+		    },
+		    // 
+		    
+		    axis: {
+		        rotated: true,
+		        x : {
+		        	show : false
+		        },
+		        y : {
+		        	show : false
+		        },
+		    },
+		    legend : {
+		    	show : false
+		    },
+		    
+		    regions : [
+		    	{axis : 'x', end : 0.5, class : 'region_dests_0'},
+		    	{axis : 'x', start : 0.5, end : 1.5, class : 'region_dests_1'},
+		    	{axis : 'x', start : 1.5, end : 2.5, class : 'region_dests_2'},
+		    	{axis : 'x', start : 2.5, end : 3.5, class : 'region_dests_3'},
+		    	{axis : 'x', start : 3.5, end : 4.5, class : 'region_dests_4'},
+		    	{axis : 'x', start : 4.5, end : 5.5, class : 'region_dests_5'},
+		    	{axis : 'x', start : 5.5, end : 6.5, class : 'region_dests_6'},
+		    	{axis : 'x', start : 6.5, end : 7.5, class : 'region_dests_7'},
+		    	{axis : 'x', start : 7.5, class : 'region_dests_8'},
+		    ]
+		});
+	};
 	
 
 	$scope.selectGroup = function(selected) {
@@ -84,6 +176,8 @@ function(Service_socket, $scope) {
 		
 	};
 	$scope.createMap = function() {
+		
+		
 		//console.log("create map")
 		d3.select("#map_orig").remove();
 		d3.select("#div_map_orig").append("div").attr("id","map_orig").attr("style", "height : 500px");
@@ -100,11 +194,16 @@ function(Service_socket, $scope) {
 
 		$scope.data.legendOrig.onAdd = function(map) {
 			var div = L.DomUtil.create('div', 'info legend');
-			// loop through our density intervals and generate a label with a colored square for each interval
-			for (var i = 0; i < $scope.origColors.length; i++) {
-				div.innerHTML += '<i style="background:' + $scope.origColors[i] + '"></i><br>';
+			// for (var i = 0; i < $scope.origColors.colormap.length; i++) {
+			for (var i = $scope.origColors.colormap.length - 1; i >= 0; i--) {
+				div.innerHTML += '<i style="background:' + $scope.origColors.colormap[i] + '"></i>';
+				if(i == 0)
+					div.innerHTML += '<span id="range_dests_min_value"></span>';
+				if(i == $scope.origColors.colormap.length - 1)
+					div.innerHTML += '<span id="range_dests_max_value"></span>';
+				div.innerHTML += "</br>";		
 			}
-
+			//div.innerHTML += '<div id="div_infochart_dests">';
 			return div;
 		}; 
 
@@ -115,10 +214,15 @@ function(Service_socket, $scope) {
 		$scope.data.legendDest.onAdd = function(map) {
 			var div = L.DomUtil.create('div', 'info legend');
 			// loop through our density intervals and generate a label with a colored square for each interval
-			for (var i = 0; i < $scope.destColors.length; i++) {
-				div.innerHTML += '<i style="background:' + $scope.destColors[i] + '"></i><br>';
+			// for (var i = 0; i < $scope.destColors.colormap.length; i++) {
+			for (var i = $scope.destColors.colormap.length - 1; i >= 0; i--) {
+				div.innerHTML += '<i style="background:' + $scope.destColors.colormap[i] + '"></i>';
+				if(i == 0)
+					div.innerHTML += '<span id="range_origs_min_value"></span>';
+				if(i == $scope.origColors.colormap.length - 1)
+					div.innerHTML += '<span id="range_origs_max_value"></span>';
+				div.innerHTML += "</br>";	
 			}
-
 			return div;
 		}; 
 
@@ -138,13 +242,12 @@ function(Service_socket, $scope) {
 						'<b>Fase: </b>' + props.fase + "<br>" +
 						'<b>Troncal: </b>' + props.troncal + "<br>" +
 						'<b>Zona: </b>' + props.zona;
-					if($scope.origValuesPerStation)
+					if($scope.valuesPerStation['destinations'])
 					{
 						var tm_id = props.numtm;	
 						tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
 						this._div.innerHTML += '<br><b> Trips from ' + $scope.currentSelected + '</b><br>' +
-							$scope.origValuesPerStation[tm_id];
-						
+							$scope.valuesPerStation['destinations'][tm_id];
 					}
 				}
 				else
@@ -167,6 +270,13 @@ function(Service_socket, $scope) {
 						'<b>Fase: </b>' + props.fase + "<br>" +
 						'<b>Troncal: </b>' + props.troncal + "<br>" +
 						'<b>Zona: </b>' + props.zona;
+					if($scope.valuesPerStation['origins'])
+					{
+						var tm_id = props.numtm;	
+						tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
+						this._div.innerHTML += '<br><b> Trips to ' + $scope.currentSelected + '</b><br>' +
+							$scope.valuesPerStation['origins'][tm_id];
+					}
 				}
 				else
 				{
@@ -195,15 +305,15 @@ function(Service_socket, $scope) {
 					radius: 10,
 					//gradient : {0.35 : '#fff7bc', 0.65 : '#fec44f', 1 : '#d95f0e'}
 					gradient : {
-						0.1 : $scope.origColors[0], 
-						0.2 : $scope.origColors[1], 
-						0.3 : $scope.origColors[2], 
-						0.4 : $scope.origColors[3],
-						0.5 : $scope.origColors[4],
-						0.6 : $scope.origColors[5], 
-						0.7 : $scope.origColors[6], 
-						0.8 : $scope.origColors[7], 
-						0.9 : $scope.origColors[8]}
+						0.1 : $scope.origColors.colormap[0], 
+						0.2 : $scope.origColors.colormap[1], 
+						0.3 : $scope.origColors.colormap[2], 
+						0.4 : $scope.origColors.colormap[3],
+						0.5 : $scope.origColors.colormap[4],
+						0.6 : $scope.origColors.colormap[5], 
+						0.7 : $scope.origColors.colormap[6], 
+						0.8 : $scope.origColors.colormap[7], 
+						0.9 : $scope.origColors.colormap[8]}
 				}
 			);
 		//$scope.layerHeatMap.bringToBack();
@@ -217,15 +327,15 @@ function(Service_socket, $scope) {
 					radius: 10,
 					//gradient : {0.35 : '#b3cde3', 0.65 : '#8c96c6', 1 : '#88419d'}
 					gradient : {
-						0.1 : $scope.destColors[0], 
-						0.2 : $scope.destColors[1], 
-						0.3 : $scope.destColors[2], 
-						0.4 : $scope.destColors[3],
-						0.5 : $scope.destColors[4],
-						0.6 : $scope.destColors[5], 
-						0.7 : $scope.destColors[6], 
-						0.8 : $scope.destColors[7], 
-						0.9 : $scope.destColors[8]}
+						0.1 : $scope.destColors.colormap[0], 
+						0.2 : $scope.destColors.colormap[1], 
+						0.3 : $scope.destColors.colormap[2], 
+						0.4 : $scope.destColors.colormap[3],
+						0.5 : $scope.destColors.colormap[4],
+						0.6 : $scope.destColors.colormap[5], 
+						0.7 : $scope.destColors.colormap[6], 
+						0.8 : $scope.destColors.colormap[7], 
+						0.9 : $scope.destColors.colormap[8]}
 				}
 			);
 		$scope.layerHeatMap_dest.addTo($scope.data.map_dest);
@@ -237,6 +347,7 @@ function(Service_socket, $scope) {
 		$scope.data.map.sync($scope.data.map_dest);
 		$scope.data.map_dest.sync($scope.data.map);
 
+		$scope.createInfoCharts();
 	};
 	$scope.updateTmStations = function(d)
 	{
@@ -259,15 +370,18 @@ function(Service_socket, $scope) {
 					layer.on({
 						mouseover : function(){
 							$scope.data.infoControl.update(feature.properties);
+							$scope.data.infoControl_dest.update(feature.properties);
 							layer.setStyle({
-								weight : 3	
+								//weight : 3	
 							});
 						},
 						mouseout : function()
 						{
 							$scope.data.infoControl.update();
+							$scope.data.infoControl_dest.update();
 							layer.setStyle({
-								weight : 1	
+								// weight : 1
+								//weight : $scope.currentSelected == 'none' ? 1 : 2	
 							});
 						}
 					});
@@ -288,6 +402,7 @@ function(Service_socket, $scope) {
 					
 					layer.on({
 						mouseover : function(){
+							$scope.data.infoControl.update(feature.properties);
 							$scope.data.infoControl_dest.update(feature.properties);
 							layer.setStyle({
 								weight : 3	
@@ -295,6 +410,7 @@ function(Service_socket, $scope) {
 						},
 						mouseout : function()
 						{
+							$scope.data.infoControl.update();
 							$scope.data.infoControl_dest.update();
 							layer.setStyle({
 								weight : 1	
@@ -309,20 +425,15 @@ function(Service_socket, $scope) {
 	$scope.updateODMatrix = function(d) {
 		$scope.rawMatrix = d;
 		
-		var total = 0;
-		var total_dest = 0;
-		for(each in d)
-		{
-			for(t in d[each]['raw'])
-				total += d[each]['raw'][t];
-			for(t in d[each]['raw_dest'])
-				total_dest += d[each]['raw_dest'][t];
-		}
-		
-		
-		
-		
-		
+		// var total = 0;
+		// var total_dest = 0;
+		// for(each in d)
+		// {
+			// for(t in d[each]['raw'])
+				// total += d[each]['raw'][t];
+			// for(t in d[each]['raw_dest'])
+				// total_dest += d[each]['raw_dest'][t];
+		// }
 		
 		
 		d3.select('#od_matrix_chord').remove();
@@ -358,8 +469,8 @@ function(Service_socket, $scope) {
 			destHeight : 500,
 			onmouseover : $scope.highlightStations,
 			onmouseout : $scope.resetHighlightStations,
-			origColor : $scope.origColors[9],
-			destColor : $scope.destColors[9],
+			origColor : $scope.origColors.colormap[9],
+			destColor : $scope.destColors.colormap[9],
 		});
 		
 		ODMatrix.createODMatrix();
@@ -373,8 +484,25 @@ function(Service_socket, $scope) {
 		//console.log("over " + this.groupBy)
 		//console.log($scope.currentGroup)
 		$scope.currentSelected = d;
-		var selectionFunction = function(parameter)
+		var selectionFunction = function(parameter, tm_cod)
 		{
+			// var weight = 1;
+			// var color = '#555';
+			// var fillcolor = "#AAA";
+			// var fillopacity = 1;
+			// var localData = valuesForEachOrig[tm_cod];
+			// if(localData)
+			// {
+				// var normal = origScale(localData);
+				// fillcolor = $scope.origColors.colorscale(normal);
+				// if(d == parameter)
+				// {
+					// weight = 2;
+					// color = '#000';
+// 					
+				// }
+			// }
+			
 			var weight = 1;
 			var color = '#555';
 			var opacity = 0;
@@ -386,7 +514,9 @@ function(Service_socket, $scope) {
 			}
 			return {
 				weight : weight,
-				color : color
+				color : color,
+				// fillColor : fillcolor,
+				// fillOpacity : fillopacity
 			};
 		};
 		
@@ -402,15 +532,25 @@ function(Service_socket, $scope) {
 		};
 		var selectionHMFunctionForEach = function(layer, tm_cod)
 		{
-			var localData = $scope.origValuesPerStation[tm_cod];
-			var normal = origScale(localData);
-			var hmValue = 100 * normal;
-			
-			$scope.layerHeatMap.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
-			localData = valuesForEachDest[tm_cod];
-			normal = destScale(localData);
-			hmValue = 100 * normal;
-			$scope.layerHeatMap_dest.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
+			var localData = valuesForEachOrig[tm_cod];
+			if(localData)
+			{
+				var normal = origScale(localData);
+				var color = $scope.origColors.colorscale(normal);
+				// if($scope.origColors.colormap.indexOf(color) == -1)
+					// console.log(localData + ", " + normal + ", " + color);
+				//$scope.infoCharts['destinations'].data[$scope.origColors.colormap.indexOf(color)][1] += 1;
+				$scope.infoCharts['destinations'].data[0][$scope.origColors.colormap.indexOf(color) + 1] += 1;
+				var hmValue = 100 * normal;
+				
+				$scope.layerHeatMap.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
+				
+				localData = valuesForEachDest[tm_cod];
+				normal = destScale(localData);
+				
+				hmValue = 100 * normal;
+				$scope.layerHeatMap_dest.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
+			}
 		};
 		
 		
@@ -428,11 +568,11 @@ function(Service_socket, $scope) {
 					var tm_id = feature.properties.numtm;	
 					tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
 					if ($scope.currentGroup[1] == 'fase') {
-						style = selectionFunction(fase);
+						style = selectionFunction(fase, tm_id);
 					} else if ($scope.currentGroup[1] == 'troncal') {
-						style = selectionFunction(troncal);
+						style = selectionFunction(troncal, tm_id);
 					} else if ($scope.currentGroup[1] == 'zona') {
-						style = selectionFunction(zona);
+						style = selectionFunction(zona, tm_id);
 					}
 					layer.setStyle(style);
 					
@@ -476,53 +616,30 @@ function(Service_socket, $scope) {
 		$scope.layerHeatMap_dest.setLatLngs([]);
 		
 		
-		$scope.origValuesPerStation = $scope.rawMatrix[d]['raw'];
-		var valuesForEach = $scope.origValuesPerStation;
-		var minmax = [Number.MAX_VALUE, Number.MIN_VALUE];
+		$scope.valuesPerStation['destinations'] = $scope.rawMatrix[d]['raw'];
+		var valuesForEachOrig = $scope.valuesPerStation['destinations'];
+		$scope.valuesPerStation['destinationsminmax'] = [Number.MAX_VALUE, Number.MIN_VALUE];
 		var total = 0;
+		var minmax = $scope.valuesPerStation.destinationsminmax;
 		
-		/*
-		for(each in $scope.rawMatrix)
+		for(v in valuesForEachOrig)
 		{
-			var raw_i = $scope.rawMatrix[each]['raw'];
-			for(v in raw_i)
-			{
-				if(minmax[0] > raw_i[v])
-					minmax[0] = raw_i[v];
-				if(minmax[1] < raw_i[v])
-					minmax[1] = raw_i[v];
-				total += raw_i[v];
-			}
+			if(minmax[0] > valuesForEachOrig[v])
+				minmax[0] = valuesForEachOrig[v];
+			if(minmax[1] < valuesForEachOrig[v])
+				minmax[1] = valuesForEachOrig[v];
+			total += valuesForEachOrig[v];
 		}
-		*/
+		d3.select('#range_dests_min_value').text(minmax[0]);
+		d3.select('#range_dests_max_value').text(minmax[1]);
 		
-		///*
-		for(v in valuesForEach)
-		{
-			if(minmax[0] > valuesForEach[v])
-				minmax[0] = valuesForEach[v];
-			if(minmax[1] < valuesForEach[v])
-				minmax[1] = valuesForEach[v];
-			total += valuesForEach[v];
-		}
-		//*/
+		var origScale = d3.scale.linear().domain($scope.valuesPerStation['destinationsminmax']);
 		
-		var origScale = d3.scale.linear().domain(minmax);
-		
-		var valuesForEachDest = {};
-		var rawMatrix = $scope.rawMatrix;
-		
-		for(each in valuesForEach)
-		{
-			valuesForEachDest[each] = 0;
-			for(each_i in rawMatrix)
-			{
-				valuesForEachDest[each] += rawMatrix[each_i]['raw'][each];
-			}
-		}
-		
-		var minmaxDest = [Number.MAX_VALUE, Number.MIN_VALUE];
+		$scope.valuesPerStation['origins'] = $scope.rawMatrix[d]['raw_dest'];
+		var valuesForEachDest = $scope.valuesPerStation['origins'];
+		$scope.valuesPerStation['originsminmax'] = [Number.MAX_VALUE, Number.MIN_VALUE];
 		var totalDest = 0;
+		var minmaxDest = $scope.valuesPerStation.originsminmax;
 		for(v in valuesForEachDest)
 		{
 			if(minmaxDest[0] > valuesForEachDest[v])
@@ -531,19 +648,32 @@ function(Service_socket, $scope) {
 				minmaxDest[1] = valuesForEachDest[v];
 			totalDest += valuesForEachDest[v];
 		}
-		var destScale = d3.scale.linear().domain(minmaxDest);
+		d3.select('#range_origs_min_value').text(minmaxDest[0]);
+		d3.select('#range_origs_max_value').text(minmaxDest[1]);
+		var destScale = d3.scale.linear().domain($scope.valuesPerStation['originsminmax']);
 		
+		$scope.infoCharts.destinations.data[0] = ['data'];
+		for(i in $scope.infoCharts.datanames)
+		{
+			$scope.infoCharts.destinations.data[0].push(0);
+		}
 		
 		highlightLayerFunction($scope.layerStations);
 		highlightLayerFunction($scope.layerStations_dest);
 		
 		
+		var testData = [['d1',0],['d2',100],['d3',0],['d4',20],['d5',0],['d6',0],['d7',50],['d8',200],['d9',100]];
+		$scope.infoCharts.destinations.chart.load({
+			columns : $scope.infoCharts.destinations.data
+			//columns : testData
+		});
 	};
 
 
 	$scope.resetHighlightStations = function() {
 		
-		$scope.origValuesPerStation = null;
+		$scope.valuesPerStation['origins'] = null;
+		$scope.valuesPerStation['destinations'] = null;
 		var resetHighlightFunction = function(targetLayer) {
 			for (each in targetLayer._layers) {
 				var layer = targetLayer._layers[each];
@@ -560,6 +690,14 @@ function(Service_socket, $scope) {
 		
 		resetHighlightFunction($scope.layerStations);
 		resetHighlightFunction($scope.layerStations_dest);
+		
+		d3.select('#range_dests_min_value').text("");
+		d3.select('#range_dests_max_value').text("");
+		d3.select('#range_origs_min_value').text("");
+		d3.select('#range_origs_max_value').text("");
+		$scope.currentSelected = 'none';
 	};
+	
+	
 
 }]);

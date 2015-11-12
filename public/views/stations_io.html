@@ -12,16 +12,17 @@
 		<h3>I/O Stations comparison (Select stations from map)</h3>	
 	</div>-->
 	
-	<div ng-controller="CollapseDemoCtrl">
+	<div ng-controller="Controller_ui">
 		<button type="button" class="btn btn-default" ng-click="isCollapsed = !isCollapsed">I/O Stations comparison</button>
 		
 		<div uib-collapse="isCollapsed">
 			<uib-tabset>
    				<uib-tab heading="Stations">
+   					<h6>Select stations from map</h6>
 					<div id="div_io">	
 					</div>
 				</uib-tab>
-				<uib-tab heading="Select">
+				<uib-tab heading="Histogram">
 					<!--<div range-slider min="selrange.min" max="selrange.max" model-min="selrange.model.min" model-max="selrange.model_max" disabled="selrange.disabled"></div>
 					<h2>{{selrange.min}} -- {{selrange.max}}</h2>
 					<h2>{{selrange.model_min}} -- {{selrange.model_max}}</h2>-->
