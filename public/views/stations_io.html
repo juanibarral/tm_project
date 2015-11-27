@@ -4,9 +4,17 @@
 	<div class="row">
 		<select ng-model="selectedDate" ng-change="updateDate()" ng-options="date.name for date in dates"> </select>
 	</div>
+	<h4 style="text-align: center;">Use slider to select hour</h4>
 	<div class="row">
-		<h4>Select hour: {{range.model_date}}</h4>
-		<div range-slider min="range.min" max="range.max" model-max="range.model_max" pin-handle="min" disabled="range.disabled"></div>
+		<div class="col-md-3 col-centered">
+			<div >
+				<div id="div_clock" style="width: 50%;margin: 0 auto;"> </div>
+				<h5>{{range.model_date}}</h5>
+			</div>
+		</div>
+		<div class="col-md-9">
+			<div range-slider min="range.min" max="range.max" model-max="range.model_max" pin-handle="min" disabled="range.disabled"></div>
+		</div>
 	</div>
 	<!--<div class="row" id="div_io">
 		<h3>I/O Stations comparison (Select stations from map)</h3>	
@@ -26,6 +34,7 @@
 					<!--<div range-slider min="selrange.min" max="selrange.max" model-min="selrange.model.min" model-max="selrange.model_max" disabled="selrange.disabled"></div>
 					<h2>{{selrange.min}} -- {{selrange.max}}</h2>
 					<h2>{{selrange.model_min}} -- {{selrange.model_max}}</h2>-->
+					<button type="button" ng-click="sortHistogram()">{{iohistogram.text}}</button>
 					<div id="div_io_selection">	
 					</div>
 				</uib-tab>

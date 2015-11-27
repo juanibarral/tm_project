@@ -197,6 +197,8 @@
 .c3-region.region_dests_8{
 	fill : #662506;
 }
-.c3-region.region_dests_test{
-	fill : red;
+
+ul.dropdown-menu{
+	position: absolute; 
+	z-index: 10000;
 }

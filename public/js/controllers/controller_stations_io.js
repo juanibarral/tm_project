@@ -1,6 +1,81 @@
 tm_app.controller('controller_stations_io',['Service_socket', '$scope', 
 function(Service_socket, $scope) 
 {
+	$scope.iohistogram = {
+		sorted : false,
+		text : "sort by value",
+	};
+	$scope.clock = new Clock();
+	
+	$scope.selectionChart = {
+		raw : {},
+		data : [],
+		categories : [],
+		BY_NAME : 0,
+		BY_VALUE : 1,
+		sortedBy : 0,
+		update : function(){
+			switch ( this.sortedBy )
+			{
+				case this.BY_VALUE :
+					this.data = [['Quantity']];
+					this.categories = [];
+					_this = this;
+					var keys = Object.keys(this.raw).sort(function(a,b){
+						var x = _this.raw[a].value;
+						var y = _this.raw[b].value;
+						if(x > y)
+						{
+							return 1;
+						}
+						else if(x < y)
+						{
+							return -1;
+						}
+						else
+						{
+							return 0;
+						}
+					});
+					this.categories = keys;
+					for	(k in keys)
+					{
+						this.data[0].push(this.raw[keys[k]].value);
+					}
+					
+				break;
+				case this.BY_NAME :
+					this.data = [['Quantity']];
+					var catt = [];
+					var keys = Object.keys(this.raw).sort();
+					this.categories = keys;
+					for	(k in keys)
+					{
+						this.data[0].push(this.raw[keys[k]].value);
+					}
+				break;
+			}
+		},
+		selected : {},
+	};
+	
+	
+	$scope.sortHistogram = function(){
+		$scope.iohistogram.sorted = !$scope.iohistogram.sorted;
+		if($scope.iohistogram.sorted)
+		{
+			$scope.iohistogram.text = 'sort by name';
+			$scope.selectionChart.sortedBy = $scope.selectionChart.BY_VALUE; 
+			
+		}
+		else
+		{
+			$scope.iohistogram.text = 'sort by value';
+			$scope.selectionChart.sortedBy = $scope.selectionChart.BY_NAME;
+		}
+		$scope.selectionChart.update();
+		$scope.updateSelectionData();
+	};
 	
 	$scope.stationsData = {
 		raw : [],
@@ -50,9 +125,23 @@ function(Service_socket, $scope)
 				for(index in data)
 				{
 					chartData[0].push(data[index][$scope.range.model_date]);
+					
+					var stationId = index.substring(2);
+					var stationName = $scope.stationsMap[stationId] ? $scope.stationsMap[stationId].estacion : "n/a";
+					$scope.selectionChart.raw[stationName].value = data[index][$scope.range.model_date];
 				}
-				$scope.updateSelectionData(chartData);
+				//$scope.selectionChart.data = chartData;
+				//$scope.updateSelectionData(chartData);
+				//console.log($scope.selectionChart);
+				$scope.selectionChart.update();
+				$scope.updateSelectionData();
     		}
+    		
+    		var date = new Date();
+    		var hours = parseInt(model_date.substring(11,13));
+    		var minutes = parseInt(model_date.substring(14));
+    		date.setHours(hours, minutes);
+    		$scope.clock.update(date);
     	}
   	});
   	
@@ -262,7 +351,7 @@ function(Service_socket, $scope)
 	
 	$scope.createSelectionChart = function()
 	{
-		console.log("Creating div??");
+		
 		d3.select("#div_selection_data_chart").remove();
 		d3.select("#div_io_selection").append("div").attr("id", "div_selection_data_chart");
 		$scope.data.selectionChart = c3.generate({
@@ -273,6 +362,30 @@ function(Service_socket, $scope)
 			data : {
 				type : 'bar',
 				columns : [],
+				selection : {
+					enabled : true,
+					multiple : true,
+					draggable : true,
+				},
+				onselected : function(d){
+					var id = $scope.selectionChart.categories[d.index];
+					var cod_tm = $scope.selectionChart.raw[id].cod;
+					$scope.selectionChart.raw[id]['chartLegend'] = $scope.addStationToChart(cod_tm);
+				},
+				onunselected : function(d){
+					var id = $scope.selectionChart.categories[d.index];
+					var chartLegend = $scope.selectionChart.raw[id].chartLegend;
+					$scope.data.iochart.load({
+						unload : chartLegend
+					});
+				},
+				onmouseover : function(d){
+					var id = $scope.selectionChart.categories[d.index];
+					$scope.colorStations($scope.range.model_date, $scope.selectionChart.raw[id].cod.substring(2));
+				},
+				onmouseout : function(d){
+					$scope.colorStations($scope.range.model_date);
+				}
 			},
 			axis: {
 				x: {
@@ -283,6 +396,9 @@ function(Service_socket, $scope)
 			},
 			transition : {
 				duration : 0
+			},
+			interaction : {
+				enabled : true,
 			}
 		}); 
 	};
@@ -371,6 +487,7 @@ function(Service_socket, $scope)
 		
 		
 		$scope.createSelectionChart();
+		
 		var chartData = [['Trips']];
 		var selectedHour = $scope.stationsData.raw.categories[$scope.range.model_max];
 		var data = $scope.stationsData.raw.data;
@@ -381,6 +498,12 @@ function(Service_socket, $scope)
 			dataName = $scope.stationsMap[dataName] ? $scope.stationsMap[dataName].estacion : "n/a" ;
 			categories.push(dataName);
 			chartData[0].push(data[index][selectedHour]);
+			
+			$scope.selectionChart.raw[dataName] = 
+			{
+				cod : index,
+				value :	data[index][selectedHour]
+			} 
 		}
 		categories.sort();
 		$scope.selrange.max = categories.length - 1;
@@ -388,7 +511,13 @@ function(Service_socket, $scope)
 		$scope.selrange.model_max = 50;
 		$scope.$apply();
 		
-		$scope.updateSelectionData(chartData, categories);
+		
+		
+		// $scope.selectionChart.data = chartData;
+		// $scope.selectionChart.categories = categories;
+		//$scope.updateSelectionData(chartData, categories);
+		$scope.selectionChart.update();
+		$scope.updateSelectionData();
 		
 	};
 	
@@ -411,8 +540,12 @@ function(Service_socket, $scope)
 	$scope.mouseClicked = function(e){
 		var cod_tm = e.target.feature.properties.codigo_tm;
 		var selectedId = 'e_' + cod_tm;
+		$scope.addStationToChart(selectedId);
+	};
+	
+	$scope.addStationToChart = function (selectedId)
+	{
 		var rawData = $scope.stationsData.raw.data[selectedId];
-			//console.log(rawData)
 		var chartData = [selectedId];
 		for (i in rawData) {
 			chartData.push(rawData[i]);
@@ -422,9 +555,9 @@ function(Service_socket, $scope)
 		var dataName = $scope.stationsMap[stationId] ? $scope.stationsMap[stationId].estacion : "n/a";
 		chartData[0] = dataName;
 		$scope.stationsData.currentSelected[dataName] = stationId;
-		
 		$scope.updateChart($scope.stationsData.raw.categories, chartData); 
-	};
+		return dataName;
+	}
 
 	$scope.createMap();
 
@@ -478,21 +611,19 @@ function(Service_socket, $scope)
 		}
 	};
 	
-	$scope.updateSelectionData = function(chartData, categories)
+	// $scope.updateSelectionData = function(chartData, categories)
+	$scope.updateSelectionData = function()
 	{
-		if(categories)
-		{
-			$scope.data.selectionChart.load({
-				columns : chartData,
-				categories : categories
-			});
-		}
-		else
-		{
-			$scope.data.selectionChart.load({
-				columns : chartData,
-			});
-		}
+		var chartData = $scope.selectionChart.data;
+		var categories = $scope.selectionChart.categories;
+		$scope.data.selectionChart.load({
+			columns : chartData,
+			categories : categories
+		});
 	};
+	
+	$scope.clock.create("#div_clock");
+	$scope.clock.update(new Date());
+	
 	
 }]);

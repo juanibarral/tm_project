@@ -6,9 +6,9 @@
 		<div ng-controller="Controller_ui">
 			<div class="btn-group" uib-dropdown is-open="status.isopen" style>
 				<button id="single-button-tod" type="button" class="btn btn-primary dropdown-toggle" uib-dropdown-toggle >
-					Time of day <span class="caret"></span>
+					Time of day <span class="caret" ></span>
 				</button>
-				<ul class="dropdown-menu" role="menu" aria-labelledby="single-button-tod">
+				<ul class="dropdown-menu" role="menu" aria-labelledby="single-button-tod" >
 					<li ng-repeat="time in timeItems" ng-click = "selectTimeOfDay(time)" >
 						<a >{{time[0]}}</a>
 					</li>
@@ -18,7 +18,7 @@
 				<button id="single-button-gb" type="button" class="btn btn-primary" uib-dropdown-toggle ng-disabled="disabled">
 					Group by <span class="caret"></span>
 				</button>
-				<ul class="dropdown-menu" role="menu" aria-labelledby="single-button-gb">
+				<ul class="dropdown-menu" role="menu" aria-labelledby="single-button-gb" >
 					<li ng-repeat="group in groupItems" ng-click = "selectGroup(group)" >
 						<a >{{group[0]}}</a>
 					</li>
@@ -27,32 +27,35 @@
 		</div>
 	</div>
 	<div class="row">
-		
 		<div class="col-md-6" id="div_map_orig">
 			<h3>Origin - Destination</h3>
-			<!--<div id="map_orig" style=" height : 500px; "> </div>-->
 		</div>
 		
 		<div class="col-md-6" id="div_map_dest">
 			<h3>Destination - Origin</h3>
-			<!--<div id="map_dest" style=" height : 500px; "> </div>-->
 		</div>
 	</div>
 
 	<h3 style="text-align: center">OD Matrix</h3>
-
-	<div class="row">
-		<div class="col-md-6">
-			
-			<div id='div_od_matrix'></div>
-		</div>
-		<div class="col-md-6">
-			
-			<div id='div_od_matrix_dest'></div>
-		</div>
-
-		<!--<span> {{createMap()}}</span>-->
-	</div>
+	<div ng-controller="Controller_ui">
+		<uib-tabset>
+			<uib-tab heading="Default">
+				<div class="row">
+					<div class="col-md-6">
+						<div id='div_od_matrix'></div>
+					</div>
+					<div class="col-md-6">
+						
+						<div id='div_od_matrix_dest'></div>
+					</div>
+				</div>
+			</uib-tab>
+			<uib-tab heading="Test">
+				<div id="div_od_matrix_bar" style="width:100%;"> </div>
+			</uib-tab>
+		</uib-tabset>
+  	</div>
+	
 </div>
 
 <script>changeSelection('menu_od_matrices');</script>

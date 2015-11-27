@@ -71,11 +71,41 @@ io.on('connection', function(socket) {
 		console.log(msg);
 		dataRetrieval.getOdMatrix(msg, function(matrix){
 			dataRetrieval.getStationsMap(function(map){
-				var newMatrix = buildMatrix(msg.group, matrix, map);
-				console.log("******************");
-				console.log("sending_od_matrix");
-				console.log(msg);
-				socket.emit('od_matrix', {caller : msg.caller, data : newMatrix});
+				if(msg.group != 'total')
+				{
+					var newMatrix = buildMatrix(msg.group, matrix, map);
+					console.log("******************");
+					console.log("sending_od_matrix");
+					console.log(msg);
+					socket.emit('od_matrix', {caller : msg.caller, data : newMatrix});
+				}
+				else
+				{
+					//console.log(map);
+					var newMatrix = {};
+					for(i in matrix)
+					{
+						var _i = parseInt(i);
+						var values = matrix[i];
+						if(map[_i])
+						{
+							var orig = map[_i].estacion;
+							if(!newMatrix[orig])
+								newMatrix[orig] = {};
+							for(j in values)
+							{
+								var _j = parseInt(j);
+								if(map[_j])
+								{
+									var dest = map[_j].estacion;
+									if(!newMatrix[orig][dest])
+										newMatrix[orig][dest] = parseFloat(values[j]);
+								}
+							}
+						}
+					}
+					socket.emit('od_matrix', {caller : msg.caller, data : newMatrix});
+				}
 			});
 		});
 	});
@@ -196,8 +226,8 @@ function buildMatrix(group, matrix, map)
 		}
 	}
 	
-	console.log(total);
-	console.log(total_dest);
+	//console.log(total);
+	//console.log(total_dest);
 	
 	var total = 0;
 	var total_dest = 0;
@@ -210,8 +240,8 @@ function buildMatrix(group, matrix, map)
 			total_dest += d[each]['raw_dest'][t];
 	}
 
-	console.log(total);
-	console.log(total_dest);
+	//console.log(total);
+	//console.log(total_dest);
 	return newMatrix;
 }
 

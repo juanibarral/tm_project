@@ -66,9 +66,10 @@ function(Service_socket, $scope) {
 	];
 	
 	$scope.groupItems = [
-		['Por Fase', 'fase'],
+		//['Por Fase', 'fase'],
 		['Por Troncal', 'troncal'],
 		['Por Zona', 'zona'],
+		['Total', 'total']
 	];
 	
 	$scope.createInfoCharts = function()
@@ -474,6 +475,23 @@ function(Service_socket, $scope) {
 		});
 		
 		ODMatrix.createODMatrix();
+		
+		
+		d3.select('#od_matrix_bar').remove();
+		d3.select('#div_od_matrix_bar').append('div').attr('id','od_matrix_bar');
+		ODMatrixBar = new GeoTabulaInfoVis.ODMatrixBar({
+			div : '#od_matrix_bar',
+			matrix : $scope.matrix,
+			matrixKeys : $scope.matrixKeys,
+			//width : '100%',
+			width : 1140,
+			height : 300,
+			origcolor : $scope.origColors.colormap[6],
+			destcolor : $scope.destColors.colormap[6],
+			onmouseover : $scope.highlightStations,
+			onmouseout : $scope.resetHighlightStations,
+		});
+		ODMatrixBar.create();
 		
 		$scope.resetHighlightStations();
 	};
