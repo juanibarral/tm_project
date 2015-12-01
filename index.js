@@ -92,6 +92,7 @@ io.on('connection', function(socket) {
 							var orig = map[_i].estacion;
 							if(!newMatrix[orig])
 								newMatrix[orig] = {};
+							var raw = {};
 							for(j in values)
 							{
 								var _j = parseInt(j);
@@ -99,9 +100,13 @@ io.on('connection', function(socket) {
 								{
 									var dest = map[_j].estacion;
 									if(!newMatrix[orig][dest])
+									{
 										newMatrix[orig][dest] = parseFloat(values[j]);
+										raw[dest] = parseFloat(values[j]);
+									}
 								}
 							}
+							newMatrix[orig]['raw'] = raw;
 						}
 					}
 					socket.emit('od_matrix', {caller : msg.caller, data : newMatrix});
