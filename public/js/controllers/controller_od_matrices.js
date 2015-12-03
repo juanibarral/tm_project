@@ -11,6 +11,7 @@ function(Service_socket, $scope) {
 	$scope.matrix;
 	$scope.matrixKeys;
 	$scope.rawMatrix;
+	$scope.rawDatamap;
 	$scope.valuesPerStation = {
 		origins : null,
 		destinations : null,
@@ -245,10 +246,29 @@ function(Service_socket, $scope) {
 						'<b>Zona: </b>' + props.zona;
 					if($scope.valuesPerStation['destinations'])
 					{
-						var tm_id = props.numtm;	
-						tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
-						this._div.innerHTML += '<br><b> Trips from ' + $scope.currentSelected + '</b><br>' +
-							$scope.valuesPerStation['destinations'][tm_id];
+						var formatter = d3.format(",.2f");
+						if($scope.currentGroup[1] == 'total')
+						{
+							var tm_cod = props.numtm;
+							var nombre = null;
+							for(i in $scope.rawDatamap)
+							{
+								if(i == tm_cod)
+								{
+									nombre = $scope.rawDatamap[i] ? $scope.rawDatamap[i].estacion : "n/a";
+									break;
+								}
+							}
+							this._div.innerHTML += '<br><b> Trips from ' + $scope.currentSelected + '</b><br>' +
+								formatter($scope.valuesPerStation['destinations'][nombre]);
+						}
+						else
+						{
+							var tm_id = props.numtm;	
+							tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
+							this._div.innerHTML += '<br><b> Trips from ' + $scope.currentSelected + '</b><br>' +
+								formatter($scope.valuesPerStation['destinations'][tm_id]);
+						}
 					}
 				}
 				else
@@ -273,10 +293,29 @@ function(Service_socket, $scope) {
 						'<b>Zona: </b>' + props.zona;
 					if($scope.valuesPerStation['origins'])
 					{
-						var tm_id = props.numtm;	
-						tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
-						this._div.innerHTML += '<br><b> Trips to ' + $scope.currentSelected + '</b><br>' +
-							$scope.valuesPerStation['origins'][tm_id];
+						var formatter = d3.format(",.2f");
+						if($scope.currentGroup[1] == 'total')
+						{
+							var tm_cod = props.numtm;
+							var nombre = null;
+							for(i in $scope.rawDatamap)
+							{
+								if(i == tm_cod)
+								{
+									nombre = $scope.rawDatamap[i] ? $scope.rawDatamap[i].estacion : "n/a";
+									break;
+								}
+							}
+							this._div.innerHTML += '<br><b> Trips to ' + $scope.currentSelected + '</b><br>' +
+								formatter($scope.valuesPerStation['origins'][nombre]);
+						}
+						else
+						{
+							var tm_id = props.numtm;	
+							tm_id = tm_id.length == 4 ? '0' + tm_id : tm_id;
+							this._div.innerHTML += '<br><b> Trips to ' + $scope.currentSelected + '</b><br>' +
+								formatter($scope.valuesPerStation['origins'][tm_id]);
+						}
 					}
 				}
 				else
@@ -424,7 +463,8 @@ function(Service_socket, $scope) {
 	
 	
 	$scope.updateODMatrix = function(d) {
-		$scope.rawMatrix = d;
+		$scope.rawMatrix = d.data;
+		$scope.rawDatamap = d.datamap;
 		
 		// var total = 0;
 		// var total_dest = 0;
@@ -449,13 +489,13 @@ function(Service_socket, $scope) {
 		
 		$scope.matrix = [];
 		//console.log(rawData);
-		$scope.matrixKeys = Object.keys(d).sort();
+		$scope.matrixKeys = Object.keys($scope.rawMatrix).sort();
 		//Create matrix
 
 		for (var i = 0; i < $scope.matrixKeys.length; i++) {
 			$scope.matrix[i] = [];
 			for (var j = 0; j < $scope.matrixKeys.length; j++) {
-				$scope.matrix[i][j] = parseFloat(d[$scope.matrixKeys[i]][$scope.matrixKeys[j]]);
+				$scope.matrix[i][j] = parseFloat($scope.rawMatrix[$scope.matrixKeys[i]][$scope.matrixKeys[j]]);
 			}
 		}
 		
@@ -504,23 +544,7 @@ function(Service_socket, $scope) {
 		$scope.currentSelected = d;
 		var selectionFunction = function(parameter, tm_cod)
 		{
-			// var weight = 1;
-			// var color = '#555';
-			// var fillcolor = "#AAA";
-			// var fillopacity = 1;
-			// var localData = valuesForEachOrig[tm_cod];
-			// if(localData)
-			// {
-				// var normal = origScale(localData);
-				// fillcolor = $scope.origColors.colorscale(normal);
-				// if(d == parameter)
-				// {
-					// weight = 2;
-					// color = '#000';
-// 					
-				// }
-			// }
-			
+
 			var weight = 1;
 			var color = '#555';
 			var opacity = 0;
@@ -533,8 +557,6 @@ function(Service_socket, $scope) {
 			return {
 				weight : weight,
 				color : color,
-				// fillColor : fillcolor,
-				// fillOpacity : fillopacity
 			};
 		};
 		
@@ -555,18 +577,15 @@ function(Service_socket, $scope) {
 			{
 				var normal = origScale(localData);
 				var color = $scope.origColors.colorscale(normal);
-				// if($scope.origColors.colormap.indexOf(color) == -1)
-					// console.log(localData + ", " + normal + ", " + color);
-				//$scope.infoCharts['destinations'].data[$scope.origColors.colormap.indexOf(color)][1] += 1;
 				$scope.infoCharts['destinations'].data[0][$scope.origColors.colormap.indexOf(color) + 1] += 1;
 				var hmValue = 100 * normal;
-				
 				$scope.layerHeatMap.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
-				
-				localData = valuesForEachDest[tm_cod];
-				normal = destScale(localData);
-				
-				hmValue = 100 * normal;
+			}
+			localData = valuesForEachDest ? valuesForEachDest[tm_cod] : null;
+			if(localData)
+			{
+				var normal = destScale(localData);
+				var hmValue = 100 * normal;
 				$scope.layerHeatMap_dest.addLatLng([layer._latlng.lat, layer._latlng.lng, hmValue]);
 			}
 		};
@@ -579,6 +598,19 @@ function(Service_socket, $scope) {
 				var fase = feature.properties.fase;
 				var troncal = feature.properties.troncal;
 				var zona = feature.properties.zona;
+				var nombre = null;
+				if($scope.currentGroup[1] == 'total')
+				{
+					var tm_cod = feature.properties.numtm;
+					for(i in $scope.rawDatamap)
+					{
+						if(i == tm_cod)
+						{
+							nombre = $scope.rawDatamap[i] ? $scope.rawDatamap[i].estacion : "n/a";
+							break;
+						}
+					}
+				}
 					
 				var each_station = true;
 				if(each_station)
@@ -591,9 +623,14 @@ function(Service_socket, $scope) {
 						style = selectionFunction(troncal, tm_id);
 					} else if ($scope.currentGroup[1] == 'zona') {
 						style = selectionFunction(zona, tm_id);
+					} else if ($scope.currentGroup[1] == 'total') {
+						style = selectionFunction(nombre, tm_id);
 					}
 					layer.setStyle(style);
-					
+					if($scope.currentGroup[1] == 'total')
+					{
+						tm_id = nombre;
+					}
 					selectionHMFunctionForEach(layer, tm_id);
 				}
 				else
@@ -648,8 +685,10 @@ function(Service_socket, $scope) {
 				minmax[1] = valuesForEachOrig[v];
 			total += valuesForEachOrig[v];
 		}
-		d3.select('#range_dests_min_value').text(minmax[0]);
-		d3.select('#range_dests_max_value').text(minmax[1]);
+		
+		var formatter = d3.format(",.2f");
+		d3.select('#range_dests_min_value').text(formatter(minmax[0]));
+		d3.select('#range_dests_max_value').text(formatter(minmax[1]));
 		
 		var origScale = d3.scale.linear().domain($scope.valuesPerStation['destinationsminmax']);
 		
@@ -666,8 +705,8 @@ function(Service_socket, $scope) {
 				minmaxDest[1] = valuesForEachDest[v];
 			totalDest += valuesForEachDest[v];
 		}
-		d3.select('#range_origs_min_value').text(minmaxDest[0]);
-		d3.select('#range_origs_max_value').text(minmaxDest[1]);
+		d3.select('#range_origs_min_value').text(formatter(minmaxDest[0]));
+		d3.select('#range_origs_max_value').text(formatter(minmaxDest[1]));
 		var destScale = d3.scale.linear().domain($scope.valuesPerStation['originsminmax']);
 		
 		$scope.infoCharts.destinations.data[0] = ['data'];

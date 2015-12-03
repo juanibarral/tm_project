@@ -109,7 +109,36 @@ io.on('connection', function(socket) {
 							newMatrix[orig]['raw'] = raw;
 						}
 					}
-					socket.emit('od_matrix', {caller : msg.caller, data : newMatrix});
+					var tMatrix = {};
+					for(i in matrix)
+					{
+						for(j in matrix[i])
+						{
+							var _i = parseInt(i);
+							if(map[_i])
+							{
+								var orig = map[_i].estacion;
+								if(!tMatrix[orig])
+								{
+									tMatrix[orig] = {};
+								}
+								var _j = parseInt(j);
+								if(map[_j])
+								{
+									var dest = map[_j].estacion;
+									if(!tMatrix[orig][dest])
+									{
+										tMatrix[orig][dest] = parseFloat(matrix[j][i]);
+									}	
+								}
+							}
+						}
+					}
+					for(i in tMatrix)
+					{
+						newMatrix[i]['raw_dest'] = tMatrix[i];
+					}
+					socket.emit('od_matrix', {caller : msg.caller, data : newMatrix, datamap : map});
 				}
 			});
 		});
@@ -187,14 +216,14 @@ function buildMatrix(group, matrix, map)
 			{
 				newMatrix[newOrigin][newDestination] = 0;
 			}
-			newMatrix[newOrigin][newDestination] += parseInt(destinations[dest]);
+			newMatrix[newOrigin][newDestination] += parseFloat(destinations[dest]);
 			
 			
 			if(!newMatrix[newOrigin]['raw'][dest])
 			{
 				newMatrix[newOrigin]['raw'][dest] = 0;
 			}
-			newMatrix[newOrigin]['raw'][dest] += parseInt(destinations[dest]);
+			newMatrix[newOrigin]['raw'][dest] += parseFloat(destinations[dest]);
 			total += parseInt(destinations[dest]);
 		}
 	}
@@ -226,8 +255,8 @@ function buildMatrix(group, matrix, map)
 			{
 				newMatrix[newDest]['raw_dest'][orig] = 0;
 			}
-			newMatrix[newDest]['raw_dest'][orig] += parseInt(origins[orig]);
-			total_dest += parseInt(origins[orig]);
+			newMatrix[newDest]['raw_dest'][orig] += parseFloat(origins[orig]);
+			total_dest += parseFloat(origins[orig]);
 		}
 	}
 	

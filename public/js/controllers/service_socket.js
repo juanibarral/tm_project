@@ -68,7 +68,7 @@ tm_app.service('Service_socket', function(){
 	});
 
 	this.socket.on('od_matrix', function(data){
-		subscribers['get_od_matrix'][data.caller](data.data);
+		subscribers['get_od_matrix'][data.caller](data);
 		delete subscribers['get_od_matrix'][data.caller]
 	});
 	
