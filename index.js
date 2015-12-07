@@ -290,6 +290,12 @@ app.get('/', function(req, res) {
 	
 });
 
+app.get('/test_matrixbar', function(req, res) {
+	
+	res.sendFile(__dirname + '/public/views/test_matrixbar.html');
+	
+});
+
 //var server = http.listen(5938, function () {
 var server = http.listen(3006, function () {
   var host = server.address().address;

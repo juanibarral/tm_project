@@ -23,6 +23,10 @@ tm_app.config(function($routeProvider){
 			templateUrl : 'views/twitter.html',
 			controller : 'controller_twitter'
 		})	
+		.when('/test_matrixbar',{
+			templateUrl : 'views/test_matrixbar.html',
+			controller : 'controller_od_matrices'
+		})
 		.otherwise({
 			redirectTo : 'views/view_home.html'
 		});

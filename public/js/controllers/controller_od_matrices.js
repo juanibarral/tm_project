@@ -1,7 +1,7 @@
 tm_app.controller('controller_od_matrices', ['Service_socket', '$scope',
 function(Service_socket, $scope) {
 	
-	//console.log('Creating controller')
+	console.log('Creating controller od matrices');
 	$scope.currentTime = null;
 	$scope.currentGroup = null;
 	$scope.layerStations = null;
